@@ -82,7 +82,7 @@ export default function AdminSidebar() {
   return (
     <>
       {/* Mobile Toggle Button */}
-      <div className="md:hidden sticky top-20 z-30 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-4 py-3">
+      <div className="md:hidden sticky top-16 sm:top-20 z-30 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-3 sm:px-4 py-2.5 sm:py-3">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 font-bold text-sm w-full"
