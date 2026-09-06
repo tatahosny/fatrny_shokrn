@@ -476,38 +476,48 @@ export default async function HomePage() {
                 المراكز الثلاثة الأولى حالياً:
               </h3>
 
-              {leaderboard.rankings.slice(0, 3).map((r, i) => (
-                <div
-                  key={r.userId}
-                  className={`flex items-center justify-between p-3 rounded-xl border ${
-                    i === 0
-                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
-                      : i === 1
-                      ? 'bg-stone-700/50 border-stone-600 text-stone-200'
-                      : 'bg-stone-700/30 border-stone-700 text-stone-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+              {leaderboard.rankings.length > 0 ? (
+                leaderboard.rankings.slice(0, 3).map((r, i) => (
+                  <div
+                    key={r.userId}
+                    className={`flex items-center justify-between p-3 rounded-xl border ${
                       i === 0
-                        ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-200'
                         : i === 1
-                        ? 'bg-stone-300 text-stone-900'
-                        : 'bg-amber-700/60 text-amber-100'
-                    }`}>
-                      {i + 1}
+                        ? 'bg-stone-700/50 border-stone-600 text-stone-200'
+                        : 'bg-stone-700/30 border-stone-700 text-stone-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+                        i === 0
+                          ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                          : i === 1
+                          ? 'bg-stone-300 text-stone-900'
+                          : 'bg-amber-700/60 text-amber-100'
+                      }`}>
+                        {i + 1}
+                      </div>
+                      <div>
+                        <div className="font-black text-sm text-white">{r.userName}</div>
+                        <div className="text-[11px] text-stone-400">{r.badge}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-black text-sm text-white">{r.userName}</div>
-                      <div className="text-[11px] text-stone-400">{r.badge}</div>
+                    <div className="text-left">
+                      <div className="text-xs font-black text-amber-400">{r.totalOrders} طلب</div>
+                      <div className="text-[10px] text-stone-400">{r.totalItems} صنف</div>
                     </div>
                   </div>
-                  <div className="text-left">
-                    <div className="text-xs font-black text-amber-400">{r.totalOrders} طلب</div>
-                    <div className="text-[10px] text-stone-400">{r.totalItems} صنف</div>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 px-4 rounded-xl bg-stone-900/50 border border-stone-700/40 text-stone-400 space-y-2">
+                  <Sparkles className="w-6 h-6 text-amber-400 mx-auto opacity-80" />
+                  <p className="font-bold text-sm text-stone-200">كن أول المتصدرين اليوم!</p>
+                  <p className="text-xs text-stone-400">
+                    اطلب إفطارك الآن وتصدّر لوحة الشرف التنافسية للجامعة.
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
 
           </div>

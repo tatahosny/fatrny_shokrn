@@ -1173,8 +1173,9 @@ export const db = {
     >();
 
     for (const user of users) {
-      // استبعاد كل المشرفين وإدارة المطاعم من القائمة — التنافس للطلاب والأعضاء فقط
-      if (user.role === 'ADMIN' || user.role === 'RESTAURANT') continue;
+      // استبعاد كل المشرفين وإدارة المطاعم من القائمة — التنافس للطلاب والعملاء فقط
+      const role = String(user.role || '').toUpperCase();
+      if (role === 'ADMIN' || role === 'RESTAURANT' || Boolean(user.restaurantId)) continue;
       userStatsMap.set(user.id, {
         userId: user.id,
         userName: user.name,
@@ -1206,12 +1207,15 @@ export const db = {
       }
     }
 
-    const sortedList = Array.from(userStatsMap.values()).sort((a, b) => {
-      if (b.totalOrders !== a.totalOrders) {
-        return b.totalOrders - a.totalOrders;
-      }
-      return b.totalItems - a.totalItems;
-    });
+    // ترتيب وتضمين فقط من لديهم طلب واحد على الأقل
+    const sortedList = Array.from(userStatsMap.values())
+      .filter((item) => item.totalOrders > 0)
+      .sort((a, b) => {
+        if (b.totalOrders !== a.totalOrders) {
+          return b.totalOrders - a.totalOrders;
+        }
+        return b.totalItems - a.totalItems;
+      });
 
     const rankings: UserRanking[] = sortedList.map((item, index) => {
       const rank = index + 1;

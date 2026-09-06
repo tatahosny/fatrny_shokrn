@@ -152,7 +152,18 @@ export default function LeaderboardPage() {
         </div>
 
         <div className="divide-y divide-stone-100 dark:divide-stone-800">
-          {data?.rankings.map((r, idx) => (
+          {(!data?.rankings || data.rankings.length === 0) ? (
+            <div className="p-12 text-center space-y-3">
+              <Trophy className="w-12 h-12 text-amber-500/50 mx-auto" />
+              <p className="text-base font-bold text-stone-700 dark:text-stone-300">
+                لا توجد طلبات مسجلة للطلاب حتى الآن اليوم
+              </p>
+              <p className="text-xs text-stone-400 max-w-sm mx-auto">
+                لوحة الشرف مخصصة حصرياً للطلاب وأعضاء الجامعة. اطلب وجبتك الآن وكن أول من يحصل على لقب &quot;ملك الفطار&quot;!
+              </p>
+            </div>
+          ) : (
+            data.rankings.map((r, idx) => (
             <motion.div
               key={r.userId}
               initial={{ opacity: 0, x: -10 }}
@@ -195,7 +206,7 @@ export default function LeaderboardPage() {
                 </div>
               </div>
             </motion.div>
-          ))}
+          )))}
         </div>
       </div>
 
