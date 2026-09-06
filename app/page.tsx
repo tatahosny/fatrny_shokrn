@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { db } from '@/lib/db';
 import FoodCard from '@/components/FoodCard';
+import CategoryIcon from '@/components/CategoryIcon';
 import {
   Utensils,
   Flame,
@@ -15,6 +16,7 @@ import {
   ChevronLeft,
   CheckCircle2,
   Users,
+  GraduationCap,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -43,7 +45,7 @@ export default async function HomePage() {
               
               {/* University Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-orange-400 text-xs sm:text-sm font-black shadow-sm">
-                <span className="text-base">🎓</span>
+                <GraduationCap className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                 <span>جامعة برج العرب التكنولوجية (BATU)</span>
                 <span className="text-orange-400">•</span>
                 <span className="font-bold">فريق إدارة التقديمات</span>
@@ -51,7 +53,7 @@ export default async function HomePage() {
 
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-stone-900 dark:text-white leading-[1.15] tracking-tight">
-                فطرني شكراً <span className="inline-block animate-bounce">🍳</span>
+                فطرني شكراً
                 <span className="block mt-2 text-2xl sm:text-3xl lg:text-4xl bg-gradient-to-r from-orange-600 via-amber-500 to-red-500 bg-clip-text text-transparent">
                   اطلب فطارك وسيب الباقي على فريق التقديمات!
                 </span>
@@ -69,7 +71,7 @@ export default async function HomePage() {
                   className="px-8 py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base sm:text-lg shadow-xl shadow-orange-500/30 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3"
                 >
                   <Utensils className="w-5 h-5" />
-                  <span>اطلب دلوقتي 🍽️</span>
+                  <span>اطلب دلوقتي</span>
                 </Link>
 
                 <Link
@@ -77,7 +79,7 @@ export default async function HomePage() {
                   className="px-7 py-4 rounded-2xl bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-100 hover:text-orange-600 dark:hover:text-orange-400 font-extrabold text-base border border-stone-200 dark:border-stone-700 shadow-md hover:border-orange-300 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2.5"
                 >
                   <Flame className="w-5 h-5 text-orange-500" />
-                  <span>شوف الأكثر طلباً 🔥</span>
+                  <span>الأكثر طلباً</span>
                 </Link>
               </div>
 
@@ -123,8 +125,8 @@ export default async function HomePage() {
                     {/* Floating Badge: King of Breakfast */}
                     {leaderboard.kingOfBreakfast && (
                       <div className="absolute top-4 right-4 bg-stone-900/90 backdrop-blur-md border border-amber-500/40 p-3 rounded-2xl shadow-xl flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
-                          👑
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                          <Crown className="w-5 h-5 text-amber-400" />
                         </div>
                         <div>
                           <div className="text-[10px] text-amber-300 font-bold">ملك الفطار اليوم</div>
@@ -207,7 +209,7 @@ export default async function HomePage() {
               <span>الأقسام الرئيسية الـ 9</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
-              كل اللي نفسك فيه للإفطار 🥪
+              كل ما تحتاجه لإفطارك الجامعي
             </h2>
           </div>
           <Link
@@ -226,10 +228,10 @@ export default async function HomePage() {
               href={`/menu?category=${cat.id}`}
               className="group flex flex-col items-center p-3 sm:p-4 rounded-2xl bg-white dark:bg-stone-800/80 border border-orange-100 dark:border-stone-800 hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 hover:-translate-y-1 transition-all text-center"
             >
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden mb-2.5 shadow-sm group-hover:scale-105 transition-transform bg-stone-100">
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden mb-2.5 shadow-sm group-hover:scale-105 transition-transform bg-stone-100 dark:bg-stone-700">
                 <Image src={cat.image} alt={cat.name} fill className="object-cover" />
-                <span className="absolute inset-0 flex items-center justify-center text-xl bg-black/25">
-                  {cat.icon}
+                <span className="absolute inset-0 flex items-center justify-center bg-stone-950/40 text-white group-hover:bg-stone-950/20 transition-colors">
+                  <CategoryIcon slug={cat.slug} name={cat.name} className="w-6 h-6 text-white drop-shadow-md" />
                 </span>
               </div>
               <span className="text-xs sm:text-sm font-black text-stone-800 dark:text-stone-200 group-hover:text-orange-600 transition-colors line-clamp-1">
@@ -240,13 +242,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 3. HOW IT WORKS (SECTION 23) */}
+      {/* 3. HOW IT WORKS */}
       <section className="bg-gradient-to-br from-amber-500/5 via-orange-500/10 to-red-500/5 dark:from-stone-900/60 dark:to-stone-900/40 py-16 border-y border-orange-100 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           
           <div className="max-w-2xl mx-auto space-y-3 mb-12">
             <span className="px-3.5 py-1 rounded-full bg-orange-500/10 text-orange-600 text-xs font-bold">
-              إزاي السيستم بيشتغل؟ 🚀
+              خطوات الطلب البسيطة
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
               اطلب فطارك في 3 خطوات بسيطة
@@ -260,8 +262,8 @@ export default async function HomePage() {
             
             {/* Step 1 */}
             <div className="relative p-6 rounded-3xl bg-white dark:bg-stone-800 shadow-sm border border-orange-100 dark:border-stone-700 flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-orange-500/15 text-orange-600 flex items-center justify-center text-3xl font-black">
-                1️⃣
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/15 text-orange-600 flex items-center justify-center text-2xl font-black">
+                01
               </div>
               <h3 className="text-lg font-black text-stone-900 dark:text-white">سجل حسابك</h3>
               <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed max-w-xs">
@@ -271,23 +273,23 @@ export default async function HomePage() {
 
             {/* Step 2 */}
             <div className="relative p-6 rounded-3xl bg-white dark:bg-stone-800 shadow-sm border border-orange-100 dark:border-stone-700 flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-amber-500/15 text-amber-600 flex items-center justify-center text-3xl font-black">
-                2️⃣
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/15 text-amber-600 flex items-center justify-center text-2xl font-black">
+                02
               </div>
               <h3 className="text-lg font-black text-stone-900 dark:text-white">اختار أكلك</h3>
               <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed max-w-xs">
-                اختار اللي نفسك فيه من المنيو وحدد الكميات وحطه في عربة التسوق بضغطة زر
+                اختار ما يناسبك من المنيو وحدد الكميات وضعه في عربة التسوق بضغطة زر
               </p>
             </div>
 
             {/* Step 3 */}
             <div className="relative p-6 rounded-3xl bg-white dark:bg-stone-800 shadow-sm border border-orange-100 dark:border-stone-700 flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-3xl font-black">
-                3️⃣
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-2xl font-black">
+                03
               </div>
               <h3 className="text-lg font-black text-stone-900 dark:text-white">استلم طلبك</h3>
               <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed max-w-xs">
-                تابع حالة طلبك لحظياً (قيد الانتظار ⏳ / تم التسليم ✅) واستلم فطارك سخن وبالهنا والشفا
+                تابع حالة طلبك لحظياً واستلم فطارك ساخناً وطازجاً في الموعد المحدد
               </p>
             </div>
 
@@ -304,7 +306,7 @@ export default async function HomePage() {
               <span>أصناف مفضلة لدى الطلاب</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
-              الأكثر طلباً على سفرة الإفطار 🍽️
+              الأكثر طلباً على سفرة الإفطار
             </h2>
           </div>
           <Link
@@ -322,7 +324,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 5. LEADERBOARD PREVIEW (SECTION 14) */}
+      {/* 5. LEADERBOARD PREVIEW */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-850 to-stone-950 p-6 sm:p-10 text-white shadow-2xl border border-stone-800 relative overflow-hidden">
           
@@ -331,13 +333,13 @@ export default async function HomePage() {
             <div className="lg:col-span-7 space-y-4">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">
                 <Crown className="w-4 h-4 text-amber-400" />
-                <span>لوحة الشرف التنافسية للجامعة 🏆</span>
+                <span>لوحة الشرف التنافسية للجامعة</span>
               </div>
               <h2 className="text-2xl sm:text-4xl font-black leading-tight">
-                مين متصدر قائمة الأكثر طلباً النهاردة؟ 🔥
+                من يتصدر قائمة الأكثر طلباً اليوم؟
               </h2>
               <p className="text-stone-400 text-xs sm:text-sm leading-relaxed max-w-xl">
-                تنافس بين أعضاء فريق إدارة التقديمات والطلاب. احصل على ألقاب مميزة مثل &quot;ملك الفطار 👑&quot; و &quot;عاشق البيتزا 🍕&quot; مع كل طلب إفطار تقدمه!
+                تنافس بين أعضاء فريق إدارة التقديمات والطلاب. احصل على ألقاب مميزة مثل &quot;ملك الفطار&quot; و &quot;عاشق البيتزا&quot; مع كل طلب إفطار تقدمه!
               </p>
               
               <div className="pt-2">
@@ -345,7 +347,7 @@ export default async function HomePage() {
                   href="/leaderboard"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all"
                 >
-                  <span>شاهد لوحة الشرف الكاملة والمتصدرين 🏆</span>
+                  <span>شاهد لوحة الشرف الكاملة والمتصدرين</span>
                   <ChevronLeft className="w-4 h-4" />
                 </Link>
               </div>
@@ -369,9 +371,15 @@ export default async function HomePage() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">
-                      {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
-                    </span>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+                      i === 0
+                        ? 'bg-amber-500 text-stone-950 shadow-md shadow-amber-500/20'
+                        : i === 1
+                        ? 'bg-stone-300 text-stone-900'
+                        : 'bg-amber-700/60 text-amber-100'
+                    }`}>
+                      {i + 1}
+                    </div>
                     <div>
                       <div className="font-black text-sm text-white">{r.userName}</div>
                       <div className="text-[11px] text-stone-400">{r.badge}</div>

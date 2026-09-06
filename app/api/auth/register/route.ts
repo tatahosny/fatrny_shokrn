@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
-      message: 'تم إنشاء الحساب بنجاح، أهلاً بك في فطرني شكراً 🍳',
+      message: 'تم إنشاء الحساب بنجاح، أهلاً بك في فطرني شكراً',
       user: newUser,
     });
 

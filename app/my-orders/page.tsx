@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Order } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { ClipboardList, Clock, CheckCircle2, XCircle, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { ClipboardList, Clock, CheckCircle2, XCircle, RotateCcw, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -13,15 +13,15 @@ import Link from 'next/link';
 const STATUS_CONFIG = {
   PENDING: {
     label: 'قيد الانتظار',
-    icon: '⏳',
+    Icon: Clock,
     color: 'text-amber-700 dark:text-amber-300',
     bg: 'bg-amber-50 dark:bg-amber-950/40',
     border: 'border-amber-200 dark:border-amber-800/50',
     dot: 'bg-amber-500 animate-pulse',
   },
   DELIVERED: {
-    label: 'تم التسليم ✅',
-    icon: '✅',
+    label: 'تم التسليم',
+    Icon: CheckCircle2,
     color: 'text-emerald-700 dark:text-emerald-300',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
     border: 'border-emerald-200 dark:border-emerald-800/50',
@@ -29,7 +29,7 @@ const STATUS_CONFIG = {
   },
   CANCELLED: {
     label: 'تم الإلغاء',
-    icon: '❌',
+    Icon: XCircle,
     color: 'text-rose-700 dark:text-rose-300',
     bg: 'bg-rose-50 dark:bg-rose-950/40',
     border: 'border-rose-200 dark:border-rose-800/50',
@@ -69,8 +69,8 @@ function OrderCard({ order }: { order: Order }) {
       {/* Order Header */}
       <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg ${cfg.bg} border ${cfg.border} shrink-0`}>
-            {cfg.icon}
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${cfg.bg} border ${cfg.border} shrink-0`}>
+            <cfg.Icon className={`w-5 h-5 ${cfg.color}`} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -88,7 +88,7 @@ function OrderCard({ order }: { order: Order }) {
             </div>
             {order.notes && (
               <div className="text-xs text-stone-500 mt-1 flex items-center gap-1">
-                <span>📍</span>
+                <MapPin className="w-3 h-3 text-stone-400" />
                 <span>{order.notes}</span>
               </div>
             )}
@@ -186,7 +186,7 @@ export default function MyOrdersPage() {
       <div className="space-y-1">
         <h1 className="text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
           <ClipboardList className="w-8 h-8 text-orange-500" />
-          <span>طلباتي 📋</span>
+          <span>طلباتي</span>
         </h1>
         <p className="text-sm text-stone-500">
           أهلاً يا <span className="font-black text-orange-600">{user?.name?.split(' ')[0]}</span>! تابع طلباتك ومعرفة حالة التسليم الآن.
@@ -196,14 +196,14 @@ export default function MyOrdersPage() {
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'طلبات قيد الانتظار', count: pending.length, emoji: '⏳', color: 'text-amber-600' },
-          { label: 'طلبات تم تسليمها', count: delivered.length, emoji: '✅', color: 'text-emerald-600' },
-          { label: 'طلبات ملغاة', count: cancelled.length, emoji: '❌', color: 'text-rose-600' },
+          { label: 'طلبات قيد الانتظار', count: pending.length, Icon: Clock, color: 'text-amber-600' },
+          { label: 'طلبات تم تسليمها', count: delivered.length, Icon: CheckCircle2, color: 'text-emerald-600' },
+          { label: 'طلبات ملغاة', count: cancelled.length, Icon: XCircle, color: 'text-rose-600' },
         ].map((stat) => (
-          <div key={stat.label} className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-stone-200 dark:border-stone-800 text-center">
-            <div className="text-2xl">{stat.emoji}</div>
+          <div key={stat.label} className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-stone-200 dark:border-stone-800 text-center flex flex-col items-center justify-center">
+            <stat.Icon className={`w-6 h-6 mb-1.5 ${stat.color}`} />
             <div className={`text-2xl font-black ${stat.color}`}>{stat.count}</div>
-            <div className="text-[11px] text-stone-500 leading-tight">{stat.label}</div>
+            <div className="text-[11px] text-stone-500 leading-tight mt-0.5">{stat.label}</div>
           </div>
         ))}
       </div>
@@ -217,11 +217,13 @@ export default function MyOrdersPage() {
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 space-y-4">
-          <div className="text-5xl">🍳</div>
+          <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-950/40 text-orange-500 flex items-center justify-center mx-auto">
+            <ClipboardList className="w-8 h-8 text-orange-500" />
+          </div>
           <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200">لم تقدم أي طلب إفطار بعد!</h3>
           <p className="text-xs text-stone-500 max-w-sm mx-auto">تصفح المنيو الشامل واطلب فطارك المفضل من أقسام الفول والشاورما والفطير والبيتزا</p>
           <Link href="/menu" className="inline-block px-6 py-2.5 rounded-2xl bg-orange-500 text-white font-bold text-sm shadow-md">
-            اطلب الآن 🍽️
+            اطلب الآن
           </Link>
         </div>
       ) : (

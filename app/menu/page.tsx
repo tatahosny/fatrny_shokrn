@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { FoodItem, Category } from '@/lib/types';
 import FoodCard from '@/components/FoodCard';
+import CategoryIcon from '@/components/CategoryIcon';
 import { useCart } from '@/context/CartContext';
 import { Search, Heart, Sparkles, SlidersHorizontal, Utensils } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -87,7 +88,7 @@ function MenuContent() {
           <span>منيو الإفطار الكامل لجامعة برج العرب</span>
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white">
-          قائمة الطعام ووجبات الإفطار 🍳
+          قائمة الطعام ووجبات الإفطار
         </h1>
         <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">
           أكثر من 55 صنفاً مصرياً أصيلاً موزعة على 9 تصنيفات مختلفة.. اطلب اللي يفتح نفسك!
@@ -141,13 +142,14 @@ function MenuContent() {
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
           onClick={() => setSelectedCategory('all')}
-          className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold shrink-0 transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-extrabold shrink-0 transition-all ${
             selectedCategory === 'all'
               ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
               : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700'
           }`}
         >
-          🍳 الكل ({foods.length})
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>الكل ({foods.length})</span>
         </button>
 
         {categories.map((cat) => {
@@ -163,7 +165,7 @@ function MenuContent() {
                   : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700'
               }`}
             >
-              <span>{cat.icon}</span>
+              <CategoryIcon slug={cat.slug} name={cat.name} className="w-4 h-4" />
               <span>{cat.name}</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/25 text-white' : 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300'}`}>
                 {count}
@@ -182,8 +184,8 @@ function MenuContent() {
         </div>
       ) : filteredFoods.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-8 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 flex items-center justify-center mx-auto text-2xl">
-            🔍
+          <div className="w-16 h-16 rounded-2xl bg-stone-100 dark:bg-stone-800 text-stone-400 flex items-center justify-center mx-auto">
+            <Search className="w-7 h-7 text-stone-400" />
           </div>
           <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200">
             لم نجد أي صنف يطابق بحثك!

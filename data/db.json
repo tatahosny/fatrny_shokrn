@@ -4,7 +4,7 @@
       "id": "user-admin-main",
       "name": "إدارة فطرني شكراً",
       "phone": "01000000000",
-      "passwordHash": "$2b$08$DaUKKrYZXt22/6HHyQ6MVOofEpTKysAbZGExxfhbGjOKwMwe/rfVW",
+      "passwordHash": "$2b$08$3nDUV9rV19Mo5jaV0gwq4u3ZWP2vUX4O1uxorbkIAxlGsad2mwRu2",
       "role": "ADMIN",
       "createdAt": "2026-09-01T07:00:00.000Z"
     },
@@ -12,7 +12,7 @@
       "id": "user-admin-mostafa",
       "name": "مصطفى محمد",
       "phone": "01011112222",
-      "passwordHash": "$2b$08$mFKrD4Fcf6PPjKW9RSNuLe.OTtnsrhiWBrjTIJCBriW.MADfjTc8a",
+      "passwordHash": "$2b$08$z/1jm7U5OT2f4tK9/DdGUOd/mbx0WXuyRsYSWiRvDkqk9jD2iKtNS",
       "role": "ADMIN",
       "createdAt": "2026-09-01T08:00:00.000Z"
     },
@@ -20,7 +20,7 @@
       "id": "user-admin-ahmed",
       "name": "د. أحمد إبراهيم",
       "phone": "01033334444",
-      "passwordHash": "$2b$08$mFKrD4Fcf6PPjKW9RSNuLe.OTtnsrhiWBrjTIJCBriW.MADfjTc8a",
+      "passwordHash": "$2b$08$z/1jm7U5OT2f4tK9/DdGUOd/mbx0WXuyRsYSWiRvDkqk9jD2iKtNS",
       "role": "ADMIN",
       "createdAt": "2026-09-01T08:30:00.000Z"
     },
@@ -28,7 +28,7 @@
       "id": "user-mariam",
       "name": "مريم خالد",
       "phone": "01010001001",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T09:00:00.000Z"
     },
@@ -36,7 +36,7 @@
       "id": "user-karim",
       "name": "كريم أحمد",
       "phone": "01010001002",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T09:15:00.000Z"
     },
@@ -44,7 +44,7 @@
       "id": "user-sara",
       "name": "سارة محمود",
       "phone": "01010001003",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T09:30:00.000Z"
     },
@@ -52,7 +52,7 @@
       "id": "user-mohamed-hassan",
       "name": "محمد حسن",
       "phone": "01010001004",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T09:45:00.000Z"
     },
@@ -60,7 +60,7 @@
       "id": "user-nour",
       "name": "نور علي",
       "phone": "01010001005",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T10:00:00.000Z"
     },
@@ -68,7 +68,7 @@
       "id": "user-omar",
       "name": "عمر طارق",
       "phone": "01010001006",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T10:15:00.000Z"
     },
@@ -76,7 +76,7 @@
       "id": "user-yasmin",
       "name": "ياسمين عبد الرحمن",
       "phone": "01010001007",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T10:30:00.000Z"
     },
@@ -84,7 +84,7 @@
       "id": "user-zeyad",
       "name": "زياد وائل",
       "phone": "01010001008",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T10:45:00.000Z"
     },
@@ -92,7 +92,7 @@
       "id": "user-habiba",
       "name": "حبيبة شريف",
       "phone": "01010001009",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T11:00:00.000Z"
     },
@@ -100,7 +100,7 @@
       "id": "user-youssef",
       "name": "يوسف إسلام",
       "phone": "01010001010",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T11:15:00.000Z"
     },
@@ -108,7 +108,7 @@
       "id": "user-aya",
       "name": "آية مصطفى",
       "phone": "01010001011",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T11:30:00.000Z"
     },
@@ -116,7 +116,7 @@
       "id": "user-hazem",
       "name": "حازم فتحي",
       "phone": "01010001012",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T11:45:00.000Z"
     },
@@ -124,7 +124,7 @@
       "id": "user-mayar",
       "name": "ميار حسام",
       "phone": "01010001013",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T12:00:00.000Z"
     },
@@ -132,7 +132,7 @@
       "id": "user-abdullah",
       "name": "عبد الله سعيد",
       "phone": "01010001014",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T12:15:00.000Z"
     },
@@ -140,7 +140,7 @@
       "id": "user-reem",
       "name": "ريم إيهاب",
       "phone": "01010001015",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T12:30:00.000Z"
     },
@@ -148,7 +148,7 @@
       "id": "user-belal",
       "name": "بلال ناصر",
       "phone": "01010001016",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T12:45:00.000Z"
     },
@@ -156,7 +156,7 @@
       "id": "user-salma",
       "name": "سلمى مجدي",
       "phone": "01010001017",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T13:00:00.000Z"
     },
@@ -164,7 +164,7 @@
       "id": "user-mazen",
       "name": "مازن عماد",
       "phone": "01010001018",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T13:15:00.000Z"
     },
@@ -172,7 +172,7 @@
       "id": "user-donia",
       "name": "دنيا خالد",
       "phone": "01010001019",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T13:30:00.000Z"
     },
@@ -180,7 +180,7 @@
       "id": "user-tarek",
       "name": "طارق نبيل",
       "phone": "01010001020",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T13:45:00.000Z"
     },
@@ -188,7 +188,7 @@
       "id": "user-malak",
       "name": "ملك عادل",
       "phone": "01010001021",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T14:00:00.000Z"
     },
@@ -196,7 +196,7 @@
       "id": "user-hamza",
       "name": "حمزة سامح",
       "phone": "01010001022",
-      "passwordHash": "$2b$08$sYKoC3C1VOSWmRfdJOOSW.XBOZyj72fnWO6H7tryl5DdSx58hKag2",
+      "passwordHash": "$2b$08$7aQOp3HztSXnX7244qc/AeZmdpbykiEMZQyAUVFYt6zuCSkl1L076",
       "role": "USER",
       "createdAt": "2026-09-02T14:15:00.000Z"
     }
@@ -206,56 +206,56 @@
       "id": "cat-foul-falafel",
       "name": "فول وفلافل",
       "slug": "foul-falafel",
-      "icon": "🥙",
+      "icon": "foul",
       "image": "/images/sandwich-foul.jpg"
     },
     {
       "id": "cat-fries",
       "name": "بطاطس سوري",
       "slug": "fries",
-      "icon": "🍟",
+      "icon": "fries",
       "image": "/images/batates-souri.jpg"
     },
     {
       "id": "cat-cheese",
       "name": "جبنة بالطماطم",
       "slug": "cheese",
-      "icon": "🧀",
+      "icon": "cheese",
       "image": "/images/gebna-tomatem.jpg"
     },
     {
       "id": "cat-pizza",
       "name": "بيتزا",
       "slug": "pizza",
-      "icon": "🍕",
+      "icon": "pizza",
       "image": "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80"
     },
     {
       "id": "cat-crepe",
       "name": "كريب",
       "slug": "crepe",
-      "icon": "🥞",
+      "icon": "crepe",
       "image": "https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=800&q=80"
     },
     {
       "id": "cat-feteer",
       "name": "فطير",
       "slug": "feteer",
-      "icon": "🥧",
+      "icon": "feteer",
       "image": "/images/feteer-meshaltet.jpg"
     },
     {
       "id": "cat-shawarma",
       "name": "شاورما",
       "slug": "shawarma",
-      "icon": "🌯",
+      "icon": "shawarma",
       "image": "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=800&q=80"
     },
     {
       "id": "cat-fish",
       "name": "فسيخ ورنجة",
       "slug": "feseekh-renga",
-      "icon": "🐟",
+      "icon": "fish",
       "image": "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80"
     }
   ],

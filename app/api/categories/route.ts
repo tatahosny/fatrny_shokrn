@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const newCat = await db.createCategory({
       name: name.trim(),
       slug: slug.trim(),
-      icon: icon || '🍽️',
+      icon: icon || 'Utensils',
       image: image || '/images/sandwich-foul.jpg',
     });
 

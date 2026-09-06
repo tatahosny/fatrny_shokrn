@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(data.user);
-      showToast(data.message || `أهلاً بك يا ${data.user.name} 👋`, 'success');
+      showToast(data.message || `أهلاً بك يا ${data.user.name}`, 'success');
       return true;
     } catch {
       showToast('حدث خطأ في الاتصال بالخادم', 'error');
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       setUser(data.user);
-      showToast(data.message || 'تم إنشاء الحساب وتأكيد الدخول بنجاح 🍳', 'success');
+      showToast(data.message || 'تم إنشاء الحساب وتأكيد الدخول بنجاح', 'success');
       return true;
     } catch {
       showToast('حدث خطأ في الاتصال بالخادم', 'error');
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
-      showToast('تم تسجيل الخروج بنجاح 👋 نراك قريباً', 'info');
+      showToast('تم تسجيل الخروج بنجاح. نراك قريباً', 'info');
       router.push('/');
     } catch {
       setUser(null);

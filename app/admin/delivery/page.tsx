@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Order } from '@/lib/types';
-import { Truck, CheckCircle2, Clock, XCircle, RefreshCw, Phone, User } from 'lucide-react';
+import { Truck, CheckCircle2, Clock, XCircle, RefreshCw, Phone, User, MapPin, Package } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -48,7 +48,7 @@ function DeliveryOrderCard({ order, onStatusChange }: {
               </div>
               {order.notes && (
                 <div className="text-xs text-stone-400 mt-1 flex items-center gap-1">
-                  <span>📍</span>
+                  <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                   <span>{order.notes}</span>
                 </div>
               )}
@@ -59,7 +59,7 @@ function DeliveryOrderCard({ order, onStatusChange }: {
               className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/25 transition-all disabled:opacity-50 shrink-0"
             >
               <CheckCircle2 className="w-4 h-4" />
-              {isUpdating ? 'جاري...' : 'تم التسليم ✅'}
+              {isUpdating ? 'جاري...' : 'تم التسليم'}
             </button>
           </div>
 
@@ -153,7 +153,7 @@ export default function DeliveryPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
             <Truck className="w-7 h-7 text-emerald-600" />
-            <span>تتبع التسليم 🚚</span>
+            <span>تتبع التسليم</span>
           </h1>
           <p className="text-sm text-stone-500 mt-1">
             اعرف مين استلم وجبته ومين لسه ينتظر — مع ضغطة زر لتأكيد التسليم
@@ -174,14 +174,14 @@ export default function DeliveryPage() {
           <div className="text-4xl font-black text-amber-600">{pendingOrders.length}</div>
           <div className="text-sm font-bold text-stone-700 dark:text-stone-300 mt-1 flex items-center justify-center gap-1.5">
             <Clock className="w-4 h-4 text-amber-500" />
-            <span>لم يتم الاستلام بعد ⏳</span>
+            <span>لم يتم الاستلام بعد</span>
           </div>
         </div>
         <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-3xl p-5 text-center">
           <div className="text-4xl font-black text-emerald-600">{deliveredOrders.length}</div>
           <div className="text-sm font-bold text-stone-700 dark:text-stone-300 mt-1 flex items-center justify-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span>تم الاستلام ✅</span>
+            <span>تم الاستلام</span>
           </div>
         </div>
       </div>
@@ -198,13 +198,13 @@ export default function DeliveryPage() {
             <div className="flex items-center gap-2 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50">
               <Clock className="w-5 h-5 text-amber-600" />
               <h2 className="font-black text-amber-800 dark:text-amber-300">
-                لم يتم الاستلام ⏳ ({pendingOrders.length})
+                لم يتم الاستلام ({pendingOrders.length})
               </h2>
             </div>
 
             {pendingOrders.length === 0 ? (
               <div className="text-center py-10 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border border-stone-200 dark:border-stone-700 space-y-2">
-                <div className="text-3xl">🎉</div>
+                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
                 <p className="text-sm font-bold text-stone-600 dark:text-stone-400">الكل استلم وجبته!</p>
               </div>
             ) : (
@@ -227,13 +227,13 @@ export default function DeliveryPage() {
             <div className="flex items-center gap-2 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               <h2 className="font-black text-emerald-800 dark:text-emerald-300">
-                تم الاستلام ✅ ({deliveredOrders.length})
+                تم الاستلام ({deliveredOrders.length})
               </h2>
             </div>
 
             {deliveredOrders.length === 0 ? (
               <div className="text-center py-10 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border border-stone-200 dark:border-stone-700 space-y-2">
-                <div className="text-3xl">📦</div>
+                <Package className="w-10 h-10 text-stone-400 mx-auto" />
                 <p className="text-sm font-bold text-stone-600 dark:text-stone-400">لم يتم تسليم أي طلب بعد</p>
               </div>
             ) : (

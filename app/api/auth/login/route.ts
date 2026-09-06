@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
-      message: `أهلاً بك يا ${user.name} 👋`,
+      message: `أهلاً بك يا ${user.name}`,
       user: safeUser,
     });
 

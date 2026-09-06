@@ -94,7 +94,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // تشغيل نغمة الإضافة الخفيفة
     playCartSound();
 
-    showToast(`تمت إضافة "${food.name}" (${quantity}) إلى السلة 🛒`, 'success');
+    showToast(`تمت إضافة "${food.name}" (${quantity}) إلى السلة`, 'success');
   };
 
   const updateQuantity = (foodId: string, quantity: number) => {
@@ -131,7 +131,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         showToast('تمت الإزالة من المفضلة', 'info');
         return prev.filter((id) => id !== foodId);
       } else {
-        showToast('تمت الإضافة إلى المفضلة ❤️', 'success');
+        showToast('تمت الإضافة إلى المفضلة', 'success');
         return [...prev, foodId];
       }
     });
@@ -188,7 +188,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setItems([]);
       setIsCartOpen(false);
-      showToast(data.message || 'تم تأكيد طلبك بنجاح! 🍳', 'success');
+      showToast(data.message || 'تم تأكيد طلبك بنجاح!', 'success');
       return data.order;
     } catch {
       showToast('حدث خطأ في الاتصال أثناء تأكيد الطلب', 'error');

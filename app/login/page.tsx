@@ -36,8 +36,10 @@ export default function LoginPage() {
           <div className="bg-gradient-to-br from-stone-900 via-stone-800 to-stone-950 p-8 text-white text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-amber-500/10 pointer-events-none" />
             <div className="relative z-10">
-              <div className="text-5xl mb-4">🔐</div>
-              <h1 className="text-2xl font-black">مرحباً بعودتك! 👋</h1>
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-8 h-8 text-orange-400" />
+              </div>
+              <h1 className="text-2xl font-black">مرحباً بعودتك</h1>
               <p className="text-stone-400 text-sm mt-2">
                 سجل دخولك وتابع طلباتك في منظومة فطرني شكراً
               </p>
@@ -90,7 +92,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-base shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-60"
             >
-              {loading ? <span>جاري تسجيل الدخول... ⏳</span> : <><LogIn className="w-5 h-5" /><span>دخول ومتابعة طلباتي</span></>}
+              {loading ? <span>جاري تسجيل الدخول...</span> : <><LogIn className="w-5 h-5" /><span>دخول ومتابعة طلباتي</span></>}
             </button>
 
             <p className="text-center text-xs text-stone-500">

@@ -28,7 +28,7 @@ export async function PATCH(
       success: true,
       message:
         status === 'DELIVERED'
-          ? `تم تأكيد تسليم الطلب #${updated.orderNumber} للطالب ${updated.userName} بنجاح ✅`
+          ? `تم تأكيد تسليم الطلب #${updated.orderNumber} للطالب ${updated.userName} بنجاح`
           : `تم تحديث حالة الطلب #${updated.orderNumber} إلى ${status}`,
       order: updated,
     });

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Crown, Phone, ShoppingBag, CheckCircle2, Clock, Edit3, Trash2, X, Save, Eye, EyeOff, Lock, User as UserIcon, Shield, RefreshCw } from 'lucide-react';
+import { Users, Crown, Phone, ShoppingBag, CheckCircle2, Clock, Edit3, Trash2, X, Save, Eye, EyeOff, Lock, User as UserIcon, Shield, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface UserWithStats {
   id: string;
@@ -100,7 +100,7 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل التحديث');
-      showToast(data.message || 'تم التحديث بنجاح ✅', 'success');
+      showToast(data.message || 'تم التحديث بنجاح', 'success');
       setEditingUser(null);
       await fetchUsers();
     } catch (err) {
@@ -136,7 +136,8 @@ export default function AdminUsersPage() {
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm flex items-center gap-2 transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
-          {toast.type === 'success' ? '✅' : '❌'} {toast.msg}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
@@ -199,8 +200,8 @@ export default function AdminUsersPage() {
                     <th className="py-3 px-4 text-right">الهاتف</th>
                     <th className="py-3 px-4 text-center">الصلاحية</th>
                     <th className="py-3 px-4 text-center">الطلبات</th>
-                    <th className="py-3 px-4 text-center">معلق ⏳</th>
-                    <th className="py-3 px-4 text-center">مسلم ✅</th>
+                    <th className="py-3 px-4 text-center">معلق</th>
+                    <th className="py-3 px-4 text-center">مسلم</th>
                     <th className="py-3 px-4 text-center">إجراءات</th>
                   </tr>
                 </thead>
@@ -445,7 +446,10 @@ export default function AdminUsersPage() {
             <p className="text-sm text-stone-500 mb-1">هتحذف المستخدم:</p>
             <p className="font-black text-orange-600 mb-1">{confirmDelete.name}</p>
             <p className="text-xs text-stone-400 font-mono mb-5" dir="ltr">{confirmDelete.phone}</p>
-            <p className="text-xs text-red-500 font-bold mb-5">⚠️ العملية دي مش ممكن تتراجع فيها!</p>
+            <p className="text-xs text-red-500 font-bold mb-5 flex items-center justify-center gap-1.5">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>العملية دي مش ممكن تتراجع فيها!</span>
+            </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}

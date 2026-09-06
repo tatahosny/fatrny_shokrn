@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { UserRanking } from '@/lib/types';
-import { Crown, Flame, Trophy, Medal, Star, TrendingUp, Users, ShoppingBag } from 'lucide-react';
+import { Crown, Flame, Trophy, Medal, Award, Star, TrendingUp, Users, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -48,7 +48,7 @@ export default function LeaderboardPage() {
           <span>لوحة الشرف والنشاط التنافسية</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-stone-900 dark:text-white leading-tight">
-          الأكثر طلباً في <span className="text-amber-500">جامعة برج العرب</span> 🔥
+          الأكثر طلباً في <span className="text-amber-500">جامعة برج العرب</span>
         </h1>
         <p className="text-sm text-stone-500 max-w-xl mx-auto">
           لوحة الشرف التنافسية لفريق إدارة التقديمات. تنافس وارتقِ في الترتيب بكل طلب إفطار جديد!
@@ -85,8 +85,8 @@ export default function LeaderboardPage() {
         >
           <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-2xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-right">
-            <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-5xl shadow-xl flex-shrink-0">
-              👑
+            <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center shadow-xl flex-shrink-0">
+              <Crown className="w-12 h-12 text-amber-200" />
             </div>
             <div className="space-y-2">
               <p className="text-sm font-bold text-amber-100 uppercase tracking-wider">ملك الفطار الحالي في الجامعة</p>
@@ -118,11 +118,10 @@ export default function LeaderboardPage() {
               : realRank === 2
               ? 'bg-gradient-to-b from-stone-400 to-stone-500 border-stone-300'
               : 'bg-gradient-to-b from-orange-700 to-orange-800 border-orange-600';
-            const medal = realRank === 1 ? '🥇' : realRank === 2 ? '🥈' : '🥉';
 
             return (
               <div key={r.userId} className="flex flex-col items-center gap-2 text-center">
-                {/* Avatar / Medal */}
+                {/* Avatar */}
                 <div className="w-14 h-14 rounded-2xl bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 flex items-center justify-center text-2xl font-black text-stone-700 dark:text-stone-200 shadow-md">
                   {r.userName.charAt(0)}
                 </div>
@@ -130,8 +129,14 @@ export default function LeaderboardPage() {
                 <div className="text-[11px] text-stone-500">{r.totalOrders} طلب</div>
                 
                 {/* Podium Block */}
-                <div className={`w-full ${height} ${bg} rounded-t-2xl border-2 flex items-center justify-center text-3xl shadow-lg`}>
-                  {medal}
+                <div className={`w-full ${height} ${bg} rounded-t-2xl border-2 flex items-center justify-center shadow-lg`}>
+                  {realRank === 1 ? (
+                    <Trophy className="w-9 h-9 text-amber-950" />
+                  ) : realRank === 2 ? (
+                    <Medal className="w-8 h-8 text-stone-900" />
+                  ) : (
+                    <Award className="w-7 h-7 text-orange-200" />
+                  )}
                 </div>
               </div>
             );
@@ -162,7 +167,7 @@ export default function LeaderboardPage() {
                 r.rank === 3 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' :
                 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'
               }`}>
-                {r.rank <= 3 ? (r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : '🥉') : r.rank}
+                {r.rank}
               </div>
 
               {/* Avatar */}
@@ -197,10 +202,10 @@ export default function LeaderboardPage() {
       {/* CTA to order */}
       <div className="text-center py-6 bg-orange-50 dark:bg-orange-950/20 rounded-3xl border border-orange-100 dark:border-orange-900/40 space-y-3">
         <p className="text-sm font-bold text-stone-700 dark:text-stone-300">
-          اطلب إفطارك وارتقِ في الترتيب! 🚀
+          اطلب إفطارك وارتقِ في الترتيب!
         </p>
         <Link href="/menu" className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-sm shadow-md shadow-orange-500/25 transition-all">
-          <span>اطلب دلوقتي من المنيو 🍽️</span>
+          <span>اطلب دلوقتي من المنيو</span>
         </Link>
       </div>
     </div>

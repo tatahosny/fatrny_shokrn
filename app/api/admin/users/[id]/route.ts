@@ -61,7 +61,7 @@ export async function PATCH(
       { targetUserId: id, updatedFields: Object.keys(updates) }
     );
 
-    return NextResponse.json({ success: true, message: 'تم تحديث البيانات بنجاح ✅' });
+    return NextResponse.json({ success: true, message: 'تم تحديث البيانات بنجاح' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'حدث خطأ أثناء التحديث';
     return NextResponse.json({ error: message }, { status: 500 });

@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `تم تأكيد طلبك بنجاح! رقم الطلب #${newOrder.orderNumber} 🍳 بالهنا والشفا`,
+      message: `تم تأكيد طلبك بنجاح! رقم الطلب #${newOrder.orderNumber} - بالهنا والشفا`,
       order: newOrder,
     });
   } catch (error: unknown) {

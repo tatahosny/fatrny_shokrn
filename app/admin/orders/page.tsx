@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
-import { ClipboardList, Search, CheckCircle2, Clock, XCircle, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { ClipboardList, Search, CheckCircle2, Clock, XCircle, ChevronDown, ChevronUp, RefreshCw, MapPin } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  PENDING: '⏳ قيد الانتظار',
-  DELIVERED: '✅ تم التسليم',
-  CANCELLED: '❌ ملغي',
+  PENDING: 'قيد الانتظار',
+  DELIVERED: 'تم التسليم',
+  CANCELLED: 'ملغي',
 };
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -107,8 +107,9 @@ function OrderRow({ order, onStatusChange }: {
               </div>
 
               {order.notes && (
-                <div className="text-xs text-stone-500 bg-white dark:bg-stone-800 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700">
-                  📍 {order.notes}
+                <div className="flex items-start gap-1.5 text-xs text-stone-500 bg-white dark:bg-stone-800 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700">
+                  <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0 mt-0.5" />
+                  <span>{order.notes}</span>
                 </div>
               )}
 
@@ -222,9 +223,9 @@ export default function AdminOrdersPage() {
           className="px-4 py-2.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none min-w-[150px]"
         >
           <option value="ALL">كل الحالات</option>
-          <option value="PENDING">⏳ قيد الانتظار</option>
-          <option value="DELIVERED">✅ تم التسليم</option>
-          <option value="CANCELLED">❌ ملغي</option>
+          <option value="PENDING">قيد الانتظار</option>
+          <option value="DELIVERED">تم التسليم</option>
+          <option value="CANCELLED">ملغي</option>
         </select>
       </div>
 
@@ -238,7 +239,7 @@ export default function AdminOrdersPage() {
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 rounded-2xl bg-stone-200 dark:bg-stone-800 animate-pulse" />)}</div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 space-y-3">
-          <div className="text-4xl">📭</div>
+          <ClipboardList className="w-12 h-12 text-stone-300 dark:text-stone-700 mx-auto" />
           <p className="font-bold text-stone-600 dark:text-stone-400">لا توجد طلبات تطابق بحثك</p>
         </div>
       ) : (

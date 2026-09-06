@@ -26,12 +26,12 @@ export default function AdminSidebar() {
 
   const links = [
     { name: 'الرئيسية والإحصائيات', href: '/admin', icon: LayoutDashboard },
-    { name: 'إجمالي الطلبات 📊', href: '/admin/totals', icon: BarChart3, highlight: true },
-    { name: 'تتبع التسليم 🚚', href: '/admin/delivery', icon: Truck, highlight: true },
+    { name: 'إجمالي الطلبات', href: '/admin/totals', icon: BarChart3, highlight: true },
+    { name: 'تتبع التسليم', href: '/admin/delivery', icon: Truck, highlight: true },
     { name: 'إدارة الطلبات', href: '/admin/orders', icon: ClipboardList },
     { name: 'قائمة الأطعمة', href: '/admin/foods', icon: UtensilsCrossed },
     { name: 'التصنيفات الـ 9', href: '/admin/categories', icon: Layers },
-    { name: 'إدارة المستخدمين 👤', href: '/admin/users', icon: UserCog },
+    { name: 'إدارة المستخدمين', href: '/admin/users', icon: UserCog },
     { name: 'التحليلات والرسوم', href: '/admin/analytics', icon: PieChart },
     { name: 'سجل النشاطات', href: '/admin/activity', icon: History },
   ];

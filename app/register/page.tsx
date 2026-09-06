@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, Phone, Lock, Eye, EyeOff, Sparkles, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Lock, Eye, EyeOff, Sparkles, ArrowLeft, CheckCircle2, UtensilsCrossed } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function RegisterPage() {
@@ -39,7 +39,9 @@ export default function RegisterPage() {
           
           {/* Header */}
           <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-red-500 p-8 text-white text-center">
-            <div className="text-5xl mb-4">🍳</div>
+            <div className="w-16 h-16 rounded-2xl bg-white/20 text-white flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <UtensilsCrossed className="w-8 h-8 text-white" />
+            </div>
             <h1 className="text-2xl font-black">انضم لـ فطرني شكراً</h1>
             <p className="text-orange-100 text-sm mt-2 font-medium">
               جامعة برج العرب التكنولوجية - فريق إدارة التقديمات
@@ -125,11 +127,11 @@ export default function RegisterPage() {
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-base shadow-lg shadow-orange-500/25 transition-all active:scale-98 disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {loading ? (
-                <span>جاري إنشاء حسابك... ⏳</span>
+                <span>جاري إنشاء حسابك...</span>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  <span>إنشاء الحساب ودخول فوري 🍳</span>
+                  <span>إنشاء الحساب ودخول فوري</span>
                 </>
               )}
             </button>

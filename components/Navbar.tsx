@@ -54,9 +54,9 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'الرئيسية', href: '/', icon: Home },
-    { name: 'قائمة الطعام 🍽️', href: '/menu', icon: UtensilsCrossed },
-    { name: 'الأكثر طلباً 🔥', href: '/leaderboard', icon: Flame },
-    ...(user ? [{ name: 'طلباتي 📋', href: '/my-orders', icon: ClipboardList }] : []),
+    { name: 'قائمة الطعام', href: '/menu', icon: UtensilsCrossed },
+    { name: 'الأكثر طلباً', href: '/leaderboard', icon: Flame },
+    ...(user ? [{ name: 'طلباتي', href: '/my-orders', icon: ClipboardList }] : []),
   ];
 
   return (
@@ -66,8 +66,8 @@ export default function Navbar() {
           
           {/* Logo & University Subtitle */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group shrink-0 select-none">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white text-xl sm:text-2xl shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform shrink-0">
-              🍳
+            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform shrink-0">
+              <UtensilsCrossed className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="flex flex-col shrink-0">
               <span className="text-lg sm:text-xl md:text-2xl font-black bg-gradient-to-r from-orange-600 via-amber-500 to-red-500 bg-clip-text text-transparent tracking-tight whitespace-nowrap leading-tight">

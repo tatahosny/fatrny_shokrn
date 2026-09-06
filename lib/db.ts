@@ -674,10 +674,10 @@ export const db = {
 
     const statusArabic =
       status === 'DELIVERED'
-        ? 'تم التسليم بنجاح ✅'
+        ? 'تم التسليم بنجاح'
         : status === 'CANCELLED'
-        ? 'تم الإلغاء ❌'
-        : 'قيد الانتظار ⏳';
+        ? 'تم الإلغاء'
+        : 'قيد الانتظار';
 
     await this.logActivity(
       `تحديث حالة الطلب #${updatedRow.orderNumber} لـ ${updatedRow.userName}: [${statusArabic}]`,
@@ -839,22 +839,22 @@ export const db = {
 
     const rankings: UserRanking[] = sortedList.map((item, index) => {
       const rank = index + 1;
-      let badge = 'عضو نشيط ✨';
+      let badge = 'عضو نشيط';
       let badgeColor = 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300';
       let isKing = false;
 
       if (rank === 1 && item.totalOrders > 0) {
-        badge = '👑 ملك الفطار';
+        badge = 'ملك الفطار';
         badgeColor = 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-300';
         isKing = true;
       } else if (item.pizzaCount >= 2) {
-        badge = '🍕 عاشق البيتزا';
+        badge = 'عاشق البيتزا';
         badgeColor = 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
       } else if (item.foulCount >= 4) {
-        badge = '🥙 ملك الفول';
+        badge = 'ملك الفول';
         badgeColor = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
       } else if (item.totalOrders >= 2) {
-        badge = '🔥 نشيط جداً';
+        badge = 'نشيط جداً';
         badgeColor = 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300';
       }
 
@@ -913,9 +913,9 @@ export const db = {
       .slice(0, 7);
 
     const deliveryStatusDistribution = [
-      { status: 'DELIVERED', count: deliveredOrders, label: 'تم التسليم ✅' },
-      { status: 'PENDING', count: pendingOrders, label: 'قيد الانتظار ⏳' },
-      { status: 'CANCELLED', count: cancelledOrders, label: 'ملغي ❌' },
+      { status: 'DELIVERED', count: deliveredOrders, label: 'تم التسليم' },
+      { status: 'PENDING', count: pendingOrders, label: 'قيد الانتظار' },
+      { status: 'CANCELLED', count: cancelledOrders, label: 'ملغي' },
     ];
 
     const daysMap = new Map<string, number>();

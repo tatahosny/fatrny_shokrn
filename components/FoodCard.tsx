@@ -124,12 +124,12 @@ export default function FoodCard({ food }: FoodCardProps) {
             {isAdded ? (
               <>
                 <Check className="w-4 h-4" />
-                <span>تمت الإضافة! 🍳</span>
+                <span>تمت الإضافة بنجاح</span>
               </>
             ) : (
               <>
                 <ShoppingCart className="w-4 h-4" />
-                <span>أضف للعربة 🛒</span>
+                <span>أضف إلى السلة</span>
               </>
             )}
           </button>

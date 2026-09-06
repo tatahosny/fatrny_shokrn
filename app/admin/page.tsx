@@ -34,7 +34,7 @@ export default async function AdminDashboardPage() {
       border: 'border-orange-200 dark:border-orange-800/50',
     },
     {
-      title: 'قيد الانتظار ⏳',
+      title: 'قيد الانتظار',
       value: stats.pendingOrders,
       icon: Clock,
       color: 'text-amber-600',
@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
       border: 'border-amber-200 dark:border-amber-800/50',
     },
     {
-      title: 'تم التسليم ✅',
+      title: 'تم التسليم',
       value: stats.deliveredOrders,
       icon: CheckCircle2,
       color: 'text-emerald-600',
@@ -105,7 +105,7 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <BarChart3 className="w-6 h-6 text-white" />
-              <h3 className="font-black text-lg">إجمالي الطلبات المطلوبة 📊</h3>
+              <h3 className="font-black text-lg">إجمالي الطلبات المطلوبة</h3>
             </div>
             <ArrowLeft className="w-5 h-5 text-white/70 group-hover:text-white group-hover:-translate-x-1 transition-transform" />
           </div>
@@ -126,7 +126,7 @@ export default async function AdminDashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <Truck className="w-6 h-6 text-white" />
-              <h3 className="font-black text-lg">تتبع التسليم 🚚</h3>
+              <h3 className="font-black text-lg">تتبع التسليم</h3>
             </div>
             <ArrowLeft className="w-5 h-5 text-white/70 group-hover:text-white group-hover:-translate-x-1 transition-transform" />
           </div>
@@ -136,12 +136,12 @@ export default async function AdminDashboardPage() {
           <div className="mt-4 flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-black">{deliveryData.delivered.length}</span>
-              <span className="text-sm text-emerald-100">تسلم ✅</span>
+              <span className="text-sm text-emerald-100">تسلم</span>
             </div>
             <div className="h-8 w-px bg-white/20" />
             <div className="flex items-center gap-2">
               <span className="text-2xl font-black">{deliveryData.pending.length}</span>
-              <span className="text-sm text-emerald-100">لم يتسلم ⏳</span>
+              <span className="text-sm text-emerald-100">لم يتسلم</span>
             </div>
           </div>
         </Link>

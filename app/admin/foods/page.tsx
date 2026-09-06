@@ -113,10 +113,10 @@ export default function AdminFoodsPage() {
       const data = await res.json();
       setFoods((prev) => prev.map((f) => (f.id === id ? data.food : f)));
       setEditingId(null);
-      showToast('تم تحديث السعر والاسم بنجاح ✅');
+      showToast('تم تحديث السعر والاسم بنجاح');
     } catch (err) {
       console.error(err);
-      showToast('حدث خطأ أثناء تعديل الصنف ❌');
+      showToast('حدث خطأ أثناء تعديل الصنف');
     } finally {
       setSaving(false);
     }
@@ -156,7 +156,7 @@ export default function AdminFoodsPage() {
 
       if (!res.ok) throw new Error('فشل حذف الصنف');
       setFoods((prev) => prev.filter((f) => f.id !== id));
-      showToast(`تم حذف صنف "${name}" بنجاح 🗑️`);
+      showToast(`تم حذف صنف "${name}" بنجاح`);
     } catch (err) {
       console.error(err);
       showToast('حدث خطأ أثناء حذف الصنف');
@@ -198,7 +198,7 @@ export default function AdminFoodsPage() {
         image: '',
         available: true,
       });
-      showToast('تمت إضافة الصنف الجديد إلى المنيو بنجاح ✨');
+      showToast('تمت إضافة الصنف الجديد إلى المنيو بنجاح');
     } catch (err) {
       console.error(err);
       showToast('حدث خطأ أثناء إضافة الصنف');
@@ -288,7 +288,7 @@ export default function AdminFoodsPage() {
         </div>
       ) : filteredFoods.length === 0 ? (
         <div className="text-center py-16 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-8 space-y-3">
-          <div className="text-4xl">🍽️</div>
+          <UtensilsCrossed className="w-12 h-12 text-stone-300 dark:text-stone-700 mx-auto" />
           <h3 className="font-bold text-stone-800 dark:text-stone-200">لا توجد أصناف مطابقة للبحث</h3>
           <p className="text-xs text-stone-500">جرب البحث بكلمات أخرى أو اختر تصنيفاً مختلفاً</p>
         </div>
@@ -511,13 +511,14 @@ export default function AdminFoodsPage() {
                         <td className="p-4">
                           <button
                             onClick={() => toggleAvailability(food)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors ${
+                            className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors inline-flex items-center gap-1.5 ${
                               food.available
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300'
                                 : 'bg-stone-100 text-stone-500 border-stone-300 dark:bg-stone-800 dark:text-stone-400'
                             }`}
                           >
-                            {food.available ? 'متاح للطلب ✅' : 'غير متاح ❌'}
+                            <span className={`w-1.5 h-1.5 rounded-full ${food.available ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                            <span>{food.available ? 'متاح للطلب' : 'غير متاح'}</span>
                           </button>
                         </td>
 

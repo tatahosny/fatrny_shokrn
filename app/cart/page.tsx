@@ -44,8 +44,8 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
-        <div className="w-24 h-24 rounded-3xl bg-orange-100 dark:bg-orange-950/40 text-orange-500 flex items-center justify-center text-4xl mx-auto shadow-inner">
-          🛒
+        <div className="w-24 h-24 rounded-3xl bg-orange-100 dark:bg-orange-950/40 text-orange-500 flex items-center justify-center mx-auto shadow-inner">
+          <ShoppingBag className="w-12 h-12 text-orange-500" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
           عربة التسوق فارغة حالياً
@@ -58,7 +58,7 @@ export default function CartPage() {
             href="/menu"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition-all active:scale-95"
           >
-            <span>استعراض قائمة الطعام 🍽️</span>
+            <span>استعراض قائمة الطعام</span>
           </Link>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default function CartPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
-            <span>عربة التسوق 🛒</span>
+            <span>عربة التسوق</span>
             <span className="text-sm px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 font-bold">
               {totalItems} أصناف
             </span>
@@ -234,7 +234,7 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between text-stone-500">
               <span>تكلفة التوصيل في الحرم الجامعي:</span>
-              <span className="font-bold text-emerald-600">مجاناً ❤️</span>
+              <span className="font-bold text-emerald-600">مجاناً</span>
             </div>
             <div className="flex justify-between text-base font-black text-stone-900 dark:text-white pt-2 border-t border-stone-100 dark:border-stone-800">
               <span>الإجمالي الكلي:</span>
@@ -251,11 +251,11 @@ export default function CartPage() {
             className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
           >
             {isSubmitting ? (
-              <span>جاري تسجيل وتأكيد الطلب... ⏳</span>
+              <span>جاري تسجيل وتأكيد الطلب...</span>
             ) : (
               <>
                 <CheckCircle2 className="w-5 h-5" />
-                <span>تأكيد الطلب 🍳</span>
+                <span>تأكيد الطلب الآن</span>
               </>
             )}
           </button>

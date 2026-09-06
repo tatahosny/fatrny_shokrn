@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Crown, Flame, ShoppingBag, ClipboardList, Star, LogOut, Settings } from 'lucide-react';
+import { Crown, Flame, ShoppingBag, ClipboardList, Star, LogOut, Settings, UtensilsCrossed } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, isLoading, logout } = useAuth();
@@ -19,7 +19,9 @@ export default function ProfilePage() {
   if (isLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center text-3xl animate-pulse">🍳</div>
+        <div className="w-16 h-16 rounded-2xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 flex items-center justify-center">
+          <UtensilsCrossed className="w-8 h-8 animate-spin" />
+        </div>
       </div>
     );
   }

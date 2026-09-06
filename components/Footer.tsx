@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Heart, Coffee, Shield, Sparkles } from 'lucide-react';
+import { Heart, Shield, Sparkles, UtensilsCrossed } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -13,7 +13,9 @@ export default function Footer() {
           {/* Col 1: Brand & University Info */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🍳</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+                <UtensilsCrossed className="w-5 h-5 text-white" />
+              </div>
               <span className="text-2xl font-black text-white">فطرني شكراً</span>
             </div>
             <p className="text-stone-400 text-sm leading-relaxed max-w-md">
@@ -40,17 +42,17 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/menu" className="hover:text-orange-400 transition-colors">
-                  قائمة وجبات الإفطار 🥪
+                  قائمة وجبات الإفطار
                 </Link>
               </li>
               <li>
                 <Link href="/leaderboard" className="hover:text-orange-400 transition-colors">
-                  الأكثر طلباً ولوحة الشرف 🏆
+                  الأكثر طلباً ولوحة الشرف
                 </Link>
               </li>
               <li>
                 <Link href="/cart" className="hover:text-orange-400 transition-colors">
-                  سلة التسوق 🛒
+                  سلة التسوق
                 </Link>
               </li>
             </ul>
@@ -69,7 +71,7 @@ export default function Footer() {
               href="/admin"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 border border-orange-500/30 text-xs font-bold transition-colors"
             >
-              <span>دخول المشرفين (Admin) 🛡️</span>
+              <span>دخول المشرفين (Admin)</span>
             </Link>
           </div>
         </div>
@@ -77,7 +79,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <p>
-            جميع الحقوق محفوظة © {new Date().getFullYear()} - فطرني شكراً 🍳 | جامعة برج العرب التكنولوجية
+            جميع الحقوق محفوظة © {new Date().getFullYear()} - فطرني شكراً | جامعة برج العرب التكنولوجية
           </p>
           <div className="flex items-center gap-1">
             <span>صُنع بـ</span>

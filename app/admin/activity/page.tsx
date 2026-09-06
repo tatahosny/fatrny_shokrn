@@ -12,7 +12,7 @@ export default async function ActivityPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
           <History className="w-7 h-7 text-orange-500" />
-          <span>سجل النشاطات والأحداث 📝</span>
+          <span>سجل النشاطات والأحداث</span>
         </h1>
         <p className="text-sm text-stone-500 mt-1">كافة العمليات والتحديثات التي جرت على المنظومة بالتفصيل</p>
       </div>
@@ -20,7 +20,7 @@ export default async function ActivityPage() {
       <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm divide-y divide-stone-100 dark:divide-stone-800">
         {logs.length === 0 ? (
           <div className="text-center py-16 text-stone-400 space-y-3">
-            <div className="text-4xl">📝</div>
+            <History className="w-12 h-12 text-stone-300 dark:text-stone-700 mx-auto" />
             <p className="font-bold">لا توجد نشاطات مسجلة بعد</p>
           </div>
         ) : (

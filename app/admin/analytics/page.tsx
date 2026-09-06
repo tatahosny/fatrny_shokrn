@@ -1,7 +1,7 @@
 import React from 'react';
 import { db } from '@/lib/db';
 import { BarChart, LineChart, DonutChart } from '@/components/Charts';
-import { PieChart, TrendingUp, Users, ShoppingBag, UtensilsCrossed } from 'lucide-react';
+import { PieChart, TrendingUp, Users, ShoppingBag, UtensilsCrossed, Trophy, BarChart3 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,7 @@ export default async function AnalyticsPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
           <PieChart className="w-7 h-7 text-orange-500" />
-          <span>التحليلات والإحصائيات 📊</span>
+          <span>التحليلات والإحصائيات</span>
         </h1>
         <p className="text-sm text-stone-500 mt-1">رسوم بيانية تفصيلية لنشاط المنظومة</p>
       </div>
@@ -42,7 +42,7 @@ export default async function AnalyticsPage() {
         {/* Popular Foods */}
         <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
           <h2 className="font-black text-stone-900 dark:text-white mb-5 flex items-center gap-2">
-            <span className="text-xl">🏆</span>
+            <Trophy className="w-5 h-5 text-amber-500" />
             <span>الأصناف الأكثر طلباً</span>
           </h2>
           <BarChart data={stats.popularFoods} />
@@ -51,7 +51,7 @@ export default async function AnalyticsPage() {
         {/* Delivery Status Donut */}
         <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm">
           <h2 className="font-black text-stone-900 dark:text-white mb-5 flex items-center gap-2">
-            <span className="text-xl">📊</span>
+            <BarChart3 className="w-5 h-5 text-emerald-500" />
             <span>حالة التسليم</span>
           </h2>
           <DonutChart
@@ -66,7 +66,7 @@ export default async function AnalyticsPage() {
         {/* Orders Per Day Line Chart */}
         <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm lg:col-span-2">
           <h2 className="font-black text-stone-900 dark:text-white mb-5 flex items-center gap-2">
-            <span className="text-xl">📈</span>
+            <TrendingUp className="w-5 h-5 text-blue-500" />
             <span>الطلبات حسب الأيام</span>
           </h2>
           <LineChart data={stats.ordersPerDay} />
@@ -75,7 +75,7 @@ export default async function AnalyticsPage() {
         {/* Top Active Users */}
         <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm lg:col-span-2">
           <h2 className="font-black text-stone-900 dark:text-white mb-5 flex items-center gap-2">
-            <span className="text-xl">👥</span>
+            <Users className="w-5 h-5 text-purple-500" />
             <span>أكثر المستخدمين نشاطاً</span>
           </h2>
           <BarChart

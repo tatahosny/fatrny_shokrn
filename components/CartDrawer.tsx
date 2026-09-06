@@ -76,7 +76,7 @@ export default function CartDrawer() {
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-stone-900 dark:text-white">
-                      عربة التسوق 🛒
+                      عربة التسوق
                     </h2>
                     <p className="text-xs text-stone-500 dark:text-stone-400">
                       إجمالي الأصناف: <span className="font-bold text-orange-600">{totalItems}</span>
@@ -108,15 +108,15 @@ export default function CartDrawer() {
               <div className="flex-1 overflow-y-auto p-5 space-y-4 divide-y divide-stone-100 dark:divide-stone-800">
                 {items.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center py-16 space-y-4">
-                    <div className="w-20 h-20 rounded-full bg-orange-100 dark:bg-orange-950/40 text-orange-500 flex items-center justify-center text-3xl">
-                      🍳
+                    <div className="w-20 h-20 rounded-3xl bg-orange-100 dark:bg-orange-950/40 text-orange-500 flex items-center justify-center">
+                      <ShoppingBag className="w-10 h-10 text-orange-500" />
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-stone-800 dark:text-stone-200">
-                        عربتك لسه فاضية!
+                        عربتك فارغة حالياً
                       </h3>
                       <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-xs">
-                        اختار فطارك المفضل من أقسام الفول والشاورما والفطير والبيتزا وضيفه هنا
+                        اختار وجباتك المفضلة من المنيو وأضفها إلى السلة لتأكيد طلبك
                       </p>
                     </div>
                     <Link
@@ -124,7 +124,7 @@ export default function CartDrawer() {
                       onClick={() => setIsCartOpen(false)}
                       className="px-6 py-2.5 rounded-2xl bg-orange-500 text-white font-bold text-sm shadow-md shadow-orange-500/25 hover:bg-orange-600 transition-all"
                     >
-                      تصفح المنيو دلوقتي 🍽️
+                      تصفح المنيو الآن
                     </Link>
                   </div>
                 ) : (
@@ -257,11 +257,11 @@ export default function CartDrawer() {
                     className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
                   >
                     {isSubmitting ? (
-                      <span>جاري تأكيد الطلب... ⏳</span>
+                      <span>جاري تأكيد الطلب...</span>
                     ) : (
                       <>
                         <CheckCircle2 className="w-5 h-5" />
-                        <span>تأكيد الطلب الآن 🍳</span>
+                        <span>تأكيد الطلب الآن</span>
                       </>
                     )}
                   </button>

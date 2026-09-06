@@ -1,6 +1,6 @@
 import React from 'react';
 import { db } from '@/lib/db';
-import { BarChart3, TrendingUp, Package, Clock } from 'lucide-react';
+import { BarChart3, TrendingUp, Package, Clock, CheckCircle2 } from 'lucide-react';
 import { AggregatedFoodTotal } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -45,7 +45,7 @@ function FoodTotalCard({ item, index }: { item: AggregatedFoodTotal; index: numb
               {item.pendingQuantity}
             </div>
             <div className="text-[10px] sm:text-[11px] font-bold text-orange-800 dark:text-orange-300 sm:text-stone-400 mt-1">
-              مطلوب ⏳
+              مطلوب
             </div>
           </div>
 
@@ -57,7 +57,7 @@ function FoodTotalCard({ item, index }: { item: AggregatedFoodTotal; index: numb
               {item.deliveredQuantity}
             </div>
             <div className="text-[10px] sm:text-[11px] font-bold text-emerald-800 dark:text-emerald-300 sm:text-stone-400 mt-1">
-              سُلِّم ✅
+              سُلِّم
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export default async function TotalsPage() {
       <div>
         <h1 className="text-xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-2.5 sm:gap-3">
           <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-orange-500 shrink-0" />
-          <span>إجمالي الطلبات المطلوبة 📊</span>
+          <span>إجمالي الطلبات المطلوبة</span>
         </h1>
         <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
           تجميع ذكي وتلقائي لكميات كل صنف طعام عبر كافة الطلبات — محدث لحظياً مع كل طلب جديد
@@ -105,7 +105,7 @@ export default async function TotalsPage() {
             {totals.totalActiveItemsCount}
           </div>
           <div className="text-[11px] sm:text-xs font-bold text-stone-700 dark:text-stone-300 mt-0.5">
-            وجبة قيد الانتظار 🍳
+            وجبة قيد الانتظار
           </div>
           <div className="text-[10px] sm:text-[11px] text-stone-400 mt-0.5">
             من {totals.totalActiveOrdersCount} طلب معلق
@@ -120,7 +120,7 @@ export default async function TotalsPage() {
             {totals.allTotals.length}
           </div>
           <div className="text-[11px] sm:text-xs font-bold text-stone-700 dark:text-stone-300 mt-0.5">
-            صنف مطلوب 🥙
+            صنف مطلوب
           </div>
           <div className="text-[10px] sm:text-[11px] text-stone-400 mt-0.5">
             في كل الأصناف
@@ -148,7 +148,7 @@ export default async function TotalsPage() {
         <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5">
           <div>
             <h2 className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
-              قائمة الوجبات المطلوبة للتجهيز ⏳
+              قائمة الوجبات المطلوبة للتجهيز
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
               الوجبات في الطلبات المعلقة مرتبة تنازلياً من الأكثر للأقل
@@ -161,8 +161,8 @@ export default async function TotalsPage() {
 
         {totals.pendingTotals.length === 0 ? (
           <div className="text-center py-10 sm:py-12 text-stone-400">
-            <div className="text-4xl sm:text-5xl mb-3">🎉</div>
-            <p className="font-bold text-sm sm:text-base">لا توجد طلبات معلقة حالياً! جميع الوجبات قد سُلِّمت.</p>
+            <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+            <p className="font-bold text-sm sm:text-base text-stone-600 dark:text-stone-400">لا توجد طلبات معلقة حالياً! جميع الوجبات قد سُلِّمت.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -184,7 +184,7 @@ export default async function TotalsPage() {
               <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">السجل التراكمي الكامل لجميع الطلبات</p>
             </div>
             <div className="text-[11px] text-orange-600 dark:text-orange-400 font-bold sm:hidden flex items-center gap-1">
-              <span>👈 اسحب الجدول أفقياً لرؤية جميع الأرقام</span>
+              <span>اسحب الجدول أفقياً لرؤية جميع الأرقام</span>
             </div>
           </div>
 
@@ -196,8 +196,8 @@ export default async function TotalsPage() {
                   <th className="py-2.5 sm:py-3 text-right w-8">#</th>
                   <th className="py-2.5 sm:py-3 text-right">الصنف</th>
                   <th className="py-2.5 sm:py-3 text-right">القسم</th>
-                  <th className="py-2.5 sm:py-3 text-center whitespace-nowrap">قيد الانتظار ⏳</th>
-                  <th className="py-2.5 sm:py-3 text-center whitespace-nowrap">سُلِّم ✅</th>
+                  <th className="py-2.5 sm:py-3 text-center whitespace-nowrap">قيد الانتظار</th>
+                  <th className="py-2.5 sm:py-3 text-center whitespace-nowrap">سُلِّم</th>
                   <th className="py-2.5 sm:py-3 text-center whitespace-nowrap">الإجمالي</th>
                 </tr>
               </thead>
