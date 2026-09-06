@@ -18,12 +18,13 @@ import {
   Sun,
   ClipboardList,
   Home,
+  Store,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, isRestaurant, logout } = useAuth();
   const { totalItems, setIsCartOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -54,10 +55,20 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'الرئيسية', href: '/', icon: Home },
-    { name: 'قائمة الطعام', href: '/menu', icon: UtensilsCrossed },
+    { name: 'المطاعم الشريكة', href: '/restaurants', icon: Store },
     { name: 'الأكثر طلباً', href: '/leaderboard', icon: Flame },
     ...(user ? [{ name: 'طلباتي', href: '/my-orders', icon: ClipboardList }] : []),
   ];
+
+  const isDashboardRoute =
+    pathname.startsWith('/admin') ||
+    pathname === '/restaurant' ||
+    pathname.startsWith('/restaurant/') ||
+    pathname.startsWith('/restaurant-dashboard');
+
+  if (isDashboardRoute) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 dark:bg-stone-900/90 border-b border-orange-100/80 dark:border-stone-800 transition-colors">
@@ -148,6 +159,17 @@ export default function Navbar() {
               )}
             </button>
 
+            {/* Restaurant Badge link (Desktop) */}
+            {isRestaurant && (
+              <Link
+                href="/restaurant"
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/30 text-xs font-bold hover:bg-orange-500/20 transition-all"
+              >
+                <Store className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <span>لوحة المطعم</span>
+              </Link>
+            )}
+
             {/* Admin Badge link (Desktop) */}
             {isAdmin && (
               <Link
@@ -157,6 +179,19 @@ export default function Navbar() {
                 <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>لوحة الإدارة</span>
               </Link>
+            )}
+
+            {/* Student Status Badge (Desktop) */}
+            {user?.role === 'STUDENT' && (
+              <div
+                className={`hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black border ${
+                  user.status === 'ACTIVE'
+                    ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                }`}
+              >
+                <span>{user.status === 'ACTIVE' ? '🎓 طالب معتمد (خصم خاص)' : '⏳ الكرنيه قيد المراجعة'}</span>
+              </div>
             )}
 
             {/* User Account / Login Button */}
@@ -267,6 +302,18 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            {/* Restaurant link inside Mobile Menu */}
+            {isRestaurant && (
+              <Link
+                href="/restaurant"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-xl bg-orange-500/10 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 font-bold text-sm border border-orange-500/20"
+              >
+                <Store className="w-4 h-4 text-orange-500" />
+                <span>لوحة المطعم</span>
+              </Link>
+            )}
 
             {/* Admin link inside Mobile Menu */}
             {isAdmin && (

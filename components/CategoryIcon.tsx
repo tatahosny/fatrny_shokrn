@@ -10,6 +10,12 @@ import {
   Layers,
   ChefHat,
   SunMedium,
+  Sandwich,
+  Cake,
+  Package,
+  Drumstick,
+  Soup,
+  PlusCircle,
   LucideProps,
 } from 'lucide-react';
 
@@ -22,14 +28,32 @@ interface CategoryIconProps extends LucideProps {
 export default function CategoryIcon({ slug, name, iconName, className = 'w-5 h-5', ...props }: CategoryIconProps) {
   const identifier = (slug || name || iconName || '').toLowerCase();
 
-  if (identifier.includes('foul') || identifier.includes('falafel') || identifier.includes('فول')) {
-    return <Utensils className={className} {...props} />;
+  if (identifier.includes('box') || identifier.includes('بوكس')) {
+    return <Package className={className} {...props} />;
+  }
+  if (identifier.includes('helw') || identifier.includes('حلو') || identifier.includes('cake') || identifier.includes('sweet')) {
+    return <Cake className={className} {...props} />;
+  }
+  if (identifier.includes('hadek') || identifier.includes('حادق') || identifier.includes('sandwich') || identifier.includes('سندوتش')) {
+    return <Sandwich className={className} {...props} />;
+  }
+  if (identifier.includes('strip') || identifier.includes('استربس')) {
+    return <Drumstick className={className} {...props} />;
+  }
+  if (identifier.includes('mac') || identifier.includes('cheese') || identifier.includes('جبنة')) {
+    return <Soup className={className} {...props} />;
   }
   if (identifier.includes('fries') || identifier.includes('بطاطس')) {
     return <Flame className={className} {...props} />;
   }
-  if (identifier.includes('cheese') || identifier.includes('جبنة')) {
-    return <Layers className={className} {...props} />;
+  if (identifier.includes('meal') || identifier.includes('وجبات') || identifier.includes('وجبة')) {
+    return <Utensils className={className} {...props} />;
+  }
+  if (identifier.includes('addition') || identifier.includes('إضافات') || identifier.includes('اضافات')) {
+    return <PlusCircle className={className} {...props} />;
+  }
+  if (identifier.includes('foul') || identifier.includes('falafel') || identifier.includes('فول')) {
+    return <Utensils className={className} {...props} />;
   }
   if (identifier.includes('pizza') || identifier.includes('بيتزا')) {
     return <Pizza className={className} {...props} />;

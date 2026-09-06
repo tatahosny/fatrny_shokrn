@@ -9,8 +9,17 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAdmin: boolean;
-  login: (phone: string, password?: string) => Promise<boolean>;
-  register: (name: string, phone: string, password?: string) => Promise<boolean>;
+  isRestaurant: boolean;
+  isStudent: boolean;
+  isStudentVerified: boolean;
+  restaurantId?: string;
+  login: (phone: string, password?: string) => Promise<User | null>;
+  register: (
+    name: string,
+    phone: string,
+    password?: string,
+    options?: { role?: 'CUSTOMER' | 'STUDENT'; studentIdImage?: string }
+  ) => Promise<{ success: boolean; pendingVerification?: boolean }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -43,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser();
   }, [refreshUser]);
 
-  const login = async (phone: string, password?: string): Promise<boolean> => {
+  const login = async (phone: string, password?: string): Promise<User | null> => {
     try {
       setIsLoading(true);
       const res = await fetch('/api/auth/login', {
@@ -55,41 +64,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!res.ok) {
         showToast(data.error || 'فشل تسجيل الدخول', 'error');
-        return false;
+        return null;
       }
 
       setUser(data.user);
       showToast(data.message || `أهلاً بك يا ${data.user.name}`, 'success');
-      return true;
+      return data.user;
     } catch {
       showToast('حدث خطأ في الاتصال بالخادم', 'error');
-      return false;
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, phone: string, password?: string): Promise<boolean> => {
+  const register = async (
+    name: string,
+    phone: string,
+    password?: string,
+    options?: { role?: 'CUSTOMER' | 'STUDENT'; studentIdImage?: string }
+  ): Promise<{ success: boolean; pendingVerification?: boolean }> => {
     try {
       setIsLoading(true);
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, password }),
+        body: JSON.stringify({
+          name,
+          phone,
+          password,
+          role: options?.role || 'CUSTOMER',
+          studentIdImage: options?.studentIdImage,
+        }),
       });
       const data = await res.json();
 
       if (!res.ok) {
         showToast(data.error || 'فشل إنشاء الحساب', 'error');
-        return false;
+        return { success: false };
+      }
+
+      if (data.pendingVerification) {
+        showToast(data.message, 'info');
+        return { success: true, pendingVerification: true };
       }
 
       setUser(data.user);
       showToast(data.message || 'تم إنشاء الحساب وتأكيد الدخول بنجاح', 'success');
-      return true;
+      return { success: true };
     } catch {
       showToast('حدث خطأ في الاتصال بالخادم', 'error');
-      return false;
+      return { success: false };
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +132,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isAdmin = user?.role === 'ADMIN';
+  const isRestaurant = user?.role === 'RESTAURANT';
+  const isStudent = user?.role === 'STUDENT';
+  const isStudentVerified = user?.role === 'STUDENT' && user?.status === 'ACTIVE';
+  const restaurantId = user?.restaurantId;
 
   return (
     <AuthContext.Provider
@@ -114,6 +143,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isLoading,
         isAdmin,
+        isRestaurant,
+        isStudent,
+        isStudentVerified,
+        restaurantId,
         login,
         register,
         logout,

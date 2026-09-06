@@ -17,7 +17,10 @@ export async function PATCH(
     }
 
     const session = await getCurrentUserFromCookie();
-    const adminName = session?.name || 'الإدارة';
+    if (!session || session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'غير مصرح لك بتعديل هذا الطلب' }, { status: 403 });
+    }
+    const adminName = session.name || 'الإدارة';
 
     const updated = await db.updateOrderStatus(id, status, adminName);
     if (!updated) {

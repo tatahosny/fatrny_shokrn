@@ -5,8 +5,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { Trash2, Plus, Minus, CheckCircle2, ShoppingBag, ArrowRight, User, Phone, MapPin } from 'lucide-react';
+import { Trash2, Plus, Minus, CheckCircle2, ShoppingBag, ArrowRight, User, Phone, MapPin, Sparkles, GraduationCap, Lock, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+const QUICK_NOTES = [
+  'طحينة زيادة',
+  'بدون شطة',
+  'شطة زيادة',
+  'ليمون زيادة',
+  'كاتشب إضافي',
+  'بدون مخلل',
+  'العيش محمص',
+];
 
 export default function CartPage() {
   const {
@@ -14,6 +24,7 @@ export default function CartPage() {
     totalItems,
     totalPrice,
     updateQuantity,
+    updateItemNotes,
     removeFromCart,
     clearCart,
     submitOrder,
@@ -24,18 +35,31 @@ export default function CartPage() {
   const router = useRouter();
 
   const [notes, setNotes] = useState('');
-  const [guestName, setGuestName] = useState('');
-  const [guestPhone, setGuestPhone] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  const toggleNote = (preset: string) => {
+    setNotes((prev) => {
+      const parts = prev
+        .split(/[,،]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.includes(preset)) {
+        return parts.filter((p) => p !== preset).join('، ');
+      } else {
+        return [...parts, preset].join('، ');
+      }
+    });
+  };
 
   const handleCheckout = async () => {
     setErrorMsg('');
-    if (!user && (!guestName.trim() || !guestPhone.trim())) {
-      setErrorMsg('يرجى إدخال اسمك ورقم هاتفك أولاً لتسجيل الطلب باسمك');
+    if (!user) {
+      setErrorMsg('يجب تسجيل الدخول بحسابك أولاً لتأكيد طلبك');
+      router.push('/login');
       return;
     }
 
-    const order = await submitOrder(notes, guestName, guestPhone);
+    const order = await submitOrder(notes);
     if (order) {
       router.push('/my-orders');
     }
@@ -96,63 +120,126 @@ export default function CartPage() {
         {/* Items List (Table style) */}
         <div className="lg:col-span-7 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden divide-y divide-stone-100 dark:divide-stone-800">
           <div className="p-4 bg-stone-50 dark:bg-stone-850 text-xs font-black text-stone-600 dark:text-stone-300 grid grid-cols-12 gap-2">
-            <span className="col-span-6">المنتج</span>
+            <span className="col-span-6">المنتج والملاحظات</span>
             <span className="col-span-3 text-center">الكمية</span>
             <span className="col-span-3 text-left">الإجمالي</span>
           </div>
 
-          {items.map(({ food, quantity }) => (
-            <div key={food.id} className="p-4 grid grid-cols-12 gap-2 items-center">
-              
-              {/* Product Info */}
-              <div className="col-span-6 flex items-center gap-3">
-                <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
-                  <Image src={food.image} alt={food.name} fill className="object-cover" />
+          {items.map((item) => {
+            const { id, food, quantity, notes: itemNote } = item;
+            return (
+              <div key={id} className="p-4 space-y-3">
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  {/* Product Info */}
+                  <div className="col-span-6 flex items-center gap-3">
+                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
+                      <Image src={food.image} alt={food.name} fill className="object-cover" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-extrabold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
+                        {food.name}
+                      </h3>
+                      <span className="text-[11px] text-orange-600 font-semibold">
+                        {food.price > 0 ? `${food.price} ج.م` : 'مجاني'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quantity Stepper */}
+                  <div className="col-span-3 flex items-center justify-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-xl p-1">
+                    <button
+                      onClick={() => updateQuantity(id, quantity - 1)}
+                      className="w-6 h-6 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-orange-600"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="px-1 text-xs font-black text-stone-800 dark:text-stone-100">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => updateQuantity(id, quantity + 1)}
+                      className="w-6 h-6 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-orange-600"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Price & Delete */}
+                  <div className="col-span-3 flex items-center justify-end gap-2 text-left">
+                    <span className="font-black text-xs sm:text-sm text-stone-900 dark:text-stone-100">
+                      {food.price > 0 ? `${food.price * quantity} ج.م` : '—'}
+                    </span>
+                    <button
+                      onClick={() => removeFromCart(id)}
+                      className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-extrabold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
-                    {food.name}
-                  </h3>
-                  <span className="text-[11px] text-orange-600 font-semibold">
-                    {food.price > 0 ? `${food.price} ج.م` : 'مجاني'}
-                  </span>
+
+                {/* Note under item (ملاحظة تحت الصنف) */}
+                <div className="p-3 bg-stone-50 dark:bg-stone-800/60 rounded-2xl border border-stone-200/80 dark:border-stone-700/60 space-y-2">
+                  <div className="flex items-center justify-between gap-1 text-[11px] font-bold text-stone-700 dark:text-stone-300">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <span>ملاحظة خاصة بالوجبة:</span>
+                    </span>
+                    {itemNote && (
+                      <button
+                        type="button"
+                        onClick={() => updateItemNotes(id, '')}
+                        className="text-[10px] text-stone-400 hover:text-red-500"
+                      >
+                        مسح الملاحظة
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Preset chips */}
+                  <div className="flex flex-wrap gap-1">
+                    {['طحينة زيادة', 'منغير سلطة', 'بدون شطة', 'شطة زيادة', 'ليمون زيادة', 'العيش محمص'].map((preset) => {
+                      const isSelected = (itemNote || '').includes(preset);
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            const parts = (itemNote || '')
+                              .split(/[,،]+/)
+                              .map((s) => s.trim())
+                              .filter(Boolean);
+                            let newNote = '';
+                            if (parts.includes(preset)) {
+                              newNote = parts.filter((p) => p !== preset).join('، ');
+                            } else {
+                              newNote = [...parts, preset].join('، ');
+                            }
+                            updateItemNotes(id, newNote);
+                          }}
+                          className={`text-[10px] px-2.5 py-1 rounded-full font-bold transition-all border ${
+                            isSelected
+                              ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                              : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-orange-300'
+                          }`}
+                        >
+                          {isSelected ? '✓ ' : '+ '}{preset}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="مثال: طحينة زيادة، منغير سلطة..."
+                    value={itemNote || ''}
+                    onChange={(e) => updateItemNotes(id, e.target.value)}
+                    className="w-full text-xs px-3 py-2 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+                  />
                 </div>
               </div>
-
-              {/* Quantity Stepper */}
-              <div className="col-span-3 flex items-center justify-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-xl p-1">
-                <button
-                  onClick={() => updateQuantity(food.id, quantity - 1)}
-                  className="w-6 h-6 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-orange-600"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="px-1 text-xs font-black text-stone-800 dark:text-stone-100">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => updateQuantity(food.id, quantity + 1)}
-                  className="w-6 h-6 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-orange-600"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Price & Delete */}
-              <div className="col-span-3 flex items-center justify-end gap-2 text-left">
-                <span className="font-black text-xs sm:text-sm text-stone-900 dark:text-stone-100">
-                  {food.price > 0 ? `${food.price * quantity} ج.م` : '—'}
-                </span>
-                <button
-                  onClick={() => removeFromCart(food.id)}
-                  className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Checkout Summary Card */}
@@ -161,69 +248,110 @@ export default function CartPage() {
             تأكيد وبيانات الطلب
           </h2>
 
-          {/* Student Profile / Guest Info */}
+          {/* Student Profile / Account requirement */}
           {!user ? (
-            <div className="space-y-3 p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200/80 dark:border-orange-800/40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-orange-900 dark:text-orange-300">
-                  بيانات الطالب للتسليم:
-                </span>
-                <Link href="/login" className="text-xs font-bold text-orange-600 underline">
-                  تسجيل الدخول
-                </Link>
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-stone-800 dark:to-orange-950/30 border border-orange-200 dark:border-orange-900/50 space-y-3 text-center">
+              <div className="w-11 h-11 rounded-full bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center mx-auto shadow-xs">
+                <Lock className="w-5 h-5" />
               </div>
-              <div className="space-y-2">
-                <div className="relative">
-                  <User className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
-                  <input
-                    type="text"
-                    placeholder="الاسم ثلاثي"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className="w-full text-xs pr-9 pl-3 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                </div>
-                <div className="relative">
-                  <Phone className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
-                  <input
-                    type="tel"
-                    placeholder="رقم الهاتف (010...)"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    className="w-full text-xs pr-9 pl-3 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                </div>
+              <div className="space-y-1">
+                <p className="text-sm font-black text-stone-900 dark:text-white">
+                  يلزم تسجيل الدخول بحساب لتأكيد الطلب
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
+                  الطلب متاح حصرياً للطلاب وأعضاء جامعة برج العرب التكنولوجية المسجلين لضمان دقة الاستلام.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link
+                  href="/login"
+                  className="py-2.5 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>تسجيل الدخول</span>
+                </Link>
+                <Link
+                  href="/register"
+                  className="py-2.5 px-3 rounded-xl bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-bold text-xs border border-stone-200 dark:border-stone-700 flex items-center justify-center gap-1 transition-colors"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>إنشاء حساب</span>
+                </Link>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
-              <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700/80">
+              <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
                 {user.name.charAt(0)}
               </div>
-              <div>
-                <div className="text-xs font-black text-stone-900 dark:text-white">{user.name}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-black text-stone-900 dark:text-white truncate">{user.name}</div>
                 <div className="text-[11px] text-stone-500">{user.phone}</div>
               </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                حساب مسجل ✓
+              </span>
             </div>
           )}
 
-          {/* Location / Notes Input */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-orange-500" />
-              <span>مكان التواجد بالجامعة أو ملاحظات إضافية:</span>
-            </label>
+          {/* Location & Food Customization Notes */}
+          <div className="space-y-3 p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700/80">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-orange-500 shrink-0" />
+                <span>ملاحظات وتعديل الوجبات (اختياري):</span>
+              </label>
+            </div>
+
+            <p className="text-[11px] text-stone-500 dark:text-stone-400">
+              اضغط على أي إضافة سريعة أو اكتب طلبك الخاص (طحينة، شطة، تسوية، مكانك...):
+            </p>
+
+            {/* Quick chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_NOTES.map((preset) => {
+                const isSelected = notes.includes(preset);
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => toggleNote(preset)}
+                    className={`text-xs px-3 py-1.5 rounded-full font-bold transition-all border ${
+                      isSelected
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm shadow-orange-500/25'
+                        : 'bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-stone-700 hover:border-orange-300'
+                    }`}
+                  >
+                    {isSelected ? '✓ ' : '+ '}{preset}
+                  </button>
+                );
+              })}
+            </div>
+
             <textarea
               rows={3}
-              placeholder="مثال: مكتب إدارة التقديمات - الدور الثاني بجوار قاعة 104"
+              placeholder="اكتب أي ملاحظة إضافية هنا (مثال: طحينة زيادة في سندوتش الفول، أو مكان التواجد بالجامعة)..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full text-xs p-3 rounded-2xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full text-xs p-3 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
             />
           </div>
 
           {errorMsg && (
             <p className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl">{errorMsg}</p>
+          )}
+
+          {/* Student discount active badge */}
+          {user?.role === 'STUDENT' && user?.status === 'ACTIVE' && (
+            <div className="flex items-center justify-between text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+              <span className="flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-emerald-600" />
+                <span>خصم الطلاب الجامعي:</span>
+              </span>
+              <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+                مفعّل تلقائياً 🎓
+              </span>
+            </div>
           )}
 
           {/* Order Summary */}
@@ -245,20 +373,30 @@ export default function CartPage() {
           </div>
 
           {/* Checkout Button */}
-          <button
-            onClick={handleCheckout}
-            disabled={isSubmitting}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
-          >
-            {isSubmitting ? (
-              <span>جاري تسجيل وتأكيد الطلب...</span>
-            ) : (
-              <>
-                <CheckCircle2 className="w-5 h-5" />
-                <span>تأكيد الطلب الآن</span>
-              </>
-            )}
-          </button>
+          {!user ? (
+            <Link
+              href="/login"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-base shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98"
+            >
+              <Lock className="w-5 h-5" />
+              <span>سجل دخولك لتأكيد الطلب</span>
+            </Link>
+          ) : (
+            <button
+              onClick={handleCheckout}
+              disabled={isSubmitting}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <span>جاري تسجيل وتأكيد الطلب...</span>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>تأكيد الطلب الآن</span>
+                </>
+              )}
+            </button>
+          )}
 
           <p className="text-[11px] text-center text-stone-400 leading-tight">
             بمجرد التأكيد سيتم إرسال الطلب فوراً لمشرفي إدارة التقديمات للبدء في تجميع الوجبات

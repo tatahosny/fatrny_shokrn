@@ -1,13 +1,42 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Crown, Phone, ShoppingBag, CheckCircle2, Clock, Edit3, Trash2, X, Save, Eye, EyeOff, Lock, User as UserIcon, Shield, RefreshCw, AlertCircle } from 'lucide-react';
+import {
+  Users,
+  Crown,
+  Phone,
+  ShoppingBag,
+  CheckCircle2,
+  Clock,
+  Edit3,
+  Trash2,
+  X,
+  Save,
+  Eye,
+  EyeOff,
+  Lock,
+  User as UserIcon,
+  Shield,
+  RefreshCw,
+  AlertCircle,
+  Store,
+  GraduationCap,
+  Plus,
+  Building2,
+  Sparkles,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export type UserRole = 'ADMIN' | 'RESTAURANT' | 'STUDENT' | 'CUSTOMER' | 'USER';
 
 interface UserWithStats {
   id: string;
   name: string;
   phone: string;
-  role: 'ADMIN' | 'USER';
+  role: UserRole;
+  status?: string;
+  restaurantId?: string;
+  restaurantName?: string;
   createdAt: string;
   totalOrders: number;
   pending: number;
@@ -18,24 +47,50 @@ interface EditForm {
   name: string;
   phone: string;
   password: string;
-  role: 'ADMIN' | 'USER';
+  role: UserRole;
+}
+
+interface RestaurantAccountForm {
+  restaurantName: string;
+  managerName: string;
+  phone: string;
+  password: string;
+  address: string;
+  description: string;
 }
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Edit User State
   const [editingUser, setEditingUser] = useState<UserWithStats | null>(null);
-  const [editForm, setEditForm] = useState<EditForm>({ name: '', phone: '', password: '', role: 'USER' });
+  const [editForm, setEditForm] = useState<EditForm>({ name: '', phone: '', password: '', role: 'CUSTOMER' });
   const [showPass, setShowPass] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Add Restaurant Account Modal State
+  const [showAddRestModal, setShowAddRestModal] = useState(false);
+  const [restForm, setRestForm] = useState<RestaurantAccountForm>({
+    restaurantName: '',
+    managerName: '',
+    phone: '',
+    password: '',
+    address: '',
+    description: '',
+  });
+  const [submittingRest, setSubmittingRest] = useState(false);
+
+  // Delete & Filter States
   const [deleting, setDeleting] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<UserWithStats | null>(null);
-  const [filter, setFilter] = useState<'all' | 'ADMIN' | 'USER'>('all');
+  const [filter, setFilter] = useState<'all' | UserRole>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const showToast = (msg: string, type: 'success' | 'error') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), 4000);
   };
 
   const fetchUsers = useCallback(async () => {
@@ -77,7 +132,7 @@ export default function AdminUsersPage() {
     setShowPass(false);
   };
 
-  const handleSave = async () => {
+  const handleSaveEdit = async () => {
     if (!editingUser) return;
     setSaving(true);
     try {
@@ -100,7 +155,7 @@ export default function AdminUsersPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل التحديث');
-      showToast(data.message || 'تم التحديث بنجاح', 'success');
+      showToast(data.message || 'تم تحديث بيانات المستخدم بنجاح', 'success');
       setEditingUser(null);
       await fetchUsers();
     } catch (err) {
@@ -110,13 +165,60 @@ export default function AdminUsersPage() {
     }
   };
 
+  // Submit Add Restaurant Account
+  const handleCreateRestaurantAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!restForm.restaurantName.trim()) {
+      showToast('اسم المطعم مطلوب', 'error');
+      return;
+    }
+    if (!restForm.phone.trim()) {
+      showToast('رقم هاتف الدخول مطلوب', 'error');
+      return;
+    }
+    if (!restForm.password.trim() || restForm.password.trim().length < 4) {
+      showToast('كلمة المرور يجب أن لا تقل عن 4 خانات', 'error');
+      return;
+    }
+
+    setSubmittingRest(true);
+    try {
+      const res = await fetch('/api/admin/restaurants/account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(restForm),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'فشل إنشاء حساب المطعم');
+      }
+
+      showToast(data.message || 'تم إنشاء حساب المطعم وإضافته للمطاعم بنجاح!', 'success');
+      setShowAddRestModal(false);
+      setRestForm({
+        restaurantName: '',
+        managerName: '',
+        phone: '',
+        password: '',
+        address: '',
+        description: '',
+      });
+      await fetchUsers();
+    } catch (err) {
+      showToast((err as Error).message, 'error');
+    } finally {
+      setSubmittingRest(false);
+    }
+  };
+
   const handleDelete = async (user: UserWithStats) => {
     setDeleting(user.id);
     try {
       const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'فشل الحذف');
-      showToast(data.message || 'تم الحذف بنجاح', 'success');
+      showToast(data.message || 'تم حذف الحساب بنجاح', 'success');
       setConfirmDelete(null);
       await fetchUsers();
     } catch (err) {
@@ -126,349 +228,521 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filtered = users.filter(u => filter === 'all' ? true : u.role === filter);
-  const adminCount = users.filter(u => u.role === 'ADMIN').length;
-  const userCount = users.filter(u => u.role === 'USER').length;
+  const filtered = users.filter((u) => {
+    const matchesFilter = filter === 'all' ? true : u.role === filter;
+    const matchesSearch = searchQuery
+      ? u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.phone.includes(searchQuery) ||
+        (u.restaurantName && u.restaurantName.toLowerCase().includes(searchQuery.toLowerCase()))
+      : true;
+    return matchesFilter && matchesSearch;
+  });
+
+  const counts = {
+    all: users.length,
+    RESTAURANT: users.filter((u) => u.role === 'RESTAURANT').length,
+    STUDENT: users.filter((u) => u.role === 'STUDENT').length,
+    ADMIN: users.filter((u) => u.role === 'ADMIN').length,
+    CUSTOMER: users.filter((u) => u.role === 'CUSTOMER' || u.role === 'USER').length,
+  };
+
+  const roleBadge = (role: UserRole, restaurantName?: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30">
+            <Shield className="w-3 h-3 text-amber-500" />
+            إدارة عليا
+          </span>
+        );
+      case 'RESTAURANT':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30">
+            <Store className="w-3 h-3 text-orange-500" />
+            <span>إدارة مطعم</span>
+            {restaurantName && <span className="font-bold">({restaurantName})</span>}
+          </span>
+        );
+      case 'STUDENT':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
+            <GraduationCap className="w-3.5 h-3.5 text-indigo-500" />
+            طالب جامعي
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
+            <UserIcon className="w-3 h-3" />
+            عميل
+          </span>
+        );
+    }
+  };
 
   return (
     <div className="space-y-6 relative">
-
-      {/* Toast */}
+      {/* Toast Alert */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm flex items-center gap-2 transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
-          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm flex items-center gap-2 transition-all ${
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+          }`}
+        >
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 shrink-0" />
+          )}
           <span>{toast.msg}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Header with Add Restaurant Account Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
-            <Users className="w-7 h-7 text-orange-500" />
-            <span>إدارة المستخدمين</span>
+            <Users className="w-7 h-7 sm:w-8 sm:h-8 text-orange-500" />
+            <span>إدارة الحسابات والمستخدمين</span>
           </h1>
-          <p className="text-sm text-stone-500 mt-1">
-            إجمالي {users.length} مستخدم — {adminCount} مشرف — {userCount} طالب
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
+            إجمالي {users.length} حساب مسجل (إدارات المطاعم، الطلاب، المشرفين، والعملاء)
           </p>
         </div>
-        <button
-          onClick={fetchUsers}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-orange-50 dark:hover:bg-stone-700 text-sm font-bold transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          تحديث
-        </button>
-      </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2">
-        {[
-          { key: 'all', label: `الكل (${users.length})` },
-          { key: 'ADMIN', label: `مشرفين (${adminCount})` },
-          { key: 'USER', label: `طلاب (${userCount})` },
-        ].map(tab => (
+        <div className="flex items-center gap-2.5">
           <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key as 'all' | 'ADMIN' | 'USER')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filter === tab.key
-              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-              : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-800 hover:border-orange-300'
-              }`}
+            onClick={fetchUsers}
+            className="p-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 transition-colors"
+            title="تحديث القائمة"
           >
-            {tab.label}
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-        ))}
+
+          <button
+            onClick={() => setShowAddRestModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-xs sm:text-sm shadow-md shadow-orange-500/25 transition-all active:scale-95"
+          >
+            <Store className="w-4 h-4" />
+            <span>+ إضافة حساب مطعم جديد</span>
+          </button>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-stone-400">
-            <RefreshCw className="w-6 h-6 animate-spin ml-2" />
-            <span>جاري التحميل...</span>
-          </div>
-        ) : (
-          <>
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/80 text-xs font-black text-stone-500 uppercase">
-                    <th className="py-3 px-4 text-right">#</th>
-                    <th className="py-3 px-4 text-right">المستخدم</th>
-                    <th className="py-3 px-4 text-right">الهاتف</th>
-                    <th className="py-3 px-4 text-center">الصلاحية</th>
-                    <th className="py-3 px-4 text-center">الطلبات</th>
-                    <th className="py-3 px-4 text-center">معلق</th>
-                    <th className="py-3 px-4 text-center">مسلم</th>
-                    <th className="py-3 px-4 text-center">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                  {filtered.map((user, i) => (
-                    <tr key={user.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
-                      <td className="py-3 px-4 text-stone-400 text-xs">{i + 1}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className={`w-8 h-8 rounded-xl text-white font-bold flex items-center justify-center text-xs shrink-0 ${user.role === 'ADMIN' ? 'bg-amber-500' : 'bg-orange-500'}`}>
-                            {user.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-extrabold text-stone-900 dark:text-stone-100 truncate max-w-[150px]">{user.name}</div>
-                            <div className="text-[11px] text-stone-400">
-                              {new Date(user.createdAt || '').toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-stone-600 dark:text-stone-300 text-xs font-medium" dir="ltr">{user.phone}</td>
-                      <td className="py-3 px-4 text-center">
-                        {user.role === 'ADMIN' ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[11px] font-bold">
-                            <Crown className="w-3 h-3 fill-amber-500 text-amber-500" />مشرف
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 text-[11px] font-bold">طالب</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center font-black text-orange-600 dark:text-orange-400">{user.totalOrders}</td>
-                      <td className="py-3 px-4 text-center font-bold text-amber-600 dark:text-amber-400">{user.pending}</td>
-                      <td className="py-3 px-4 text-center font-bold text-emerald-600 dark:text-emerald-400">{user.delivered}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => openEdit(user)}
-                            className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                            title="تعديل"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(user)}
-                            className="p-2 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                            title="حذف"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {/* Filter Tabs & Search Bar */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-stone-900 p-3 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+        <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
+          {[
+            { key: 'all', label: 'الكل', count: counts.all },
+            { key: 'RESTAURANT', label: 'المطاعم 🍽', count: counts.RESTAURANT },
+            { key: 'STUDENT', label: 'الطلاب 🎓', count: counts.STUDENT },
+            { key: 'ADMIN', label: 'المشرفين 🛡', count: counts.ADMIN },
+            { key: 'CUSTOMER', label: 'العملاء 👤', count: counts.CUSTOMER },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key as typeof filter)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                filter === tab.key
+                  ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/25'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:text-stone-900'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  filter === tab.key ? 'bg-white/25 text-white' : 'bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
+                }`}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
 
-            {/* Mobile Cards */}
-            <div className="md:hidden divide-y divide-stone-100 dark:divide-stone-800">
-              {filtered.map((user, i) => (
-                <div key={user.id} className="p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-xl text-white font-bold flex items-center justify-center text-sm shrink-0 ${user.role === 'ADMIN' ? 'bg-amber-500' : 'bg-orange-500'}`}>
-                        {user.name.charAt(0)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-extrabold text-stone-900 dark:text-stone-100 text-sm truncate">{user.name}</div>
-                        <div className="text-xs text-stone-400 font-mono" dir="ltr">{user.phone}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button onClick={() => openEdit(user)} className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 hover:bg-blue-100 transition-colors">
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => setConfirmDelete(user)} className="p-2 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 hover:bg-red-100 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+        <div className="w-full md:w-64">
+          <input
+            type="text"
+            placeholder="بحث بالاسم، رقم الهاتف، المطعم..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-xs px-3 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+          />
+        </div>
+      </div>
+
+      {/* Users List / Table */}
+      {loading ? (
+        <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800">
+          <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-3" />
+          <p className="text-xs font-bold text-stone-500">جاري تحميل بيانات الحسابات...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 space-y-2">
+          <Users className="w-10 h-10 text-stone-300 mx-auto" />
+          <h3 className="font-bold text-stone-700 dark:text-stone-300">لا يوجد حسابات مطابقة</h3>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm divide-y divide-stone-100 dark:divide-stone-800">
+          {filtered.map((u) => (
+            <div
+              key={u.id}
+              className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50/70 dark:hover:bg-stone-800/40 transition-colors"
+            >
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md ${
+                    u.role === 'RESTAURANT'
+                      ? 'bg-gradient-to-tr from-orange-500 to-amber-500 shadow-orange-500/20'
+                      : u.role === 'ADMIN'
+                      ? 'bg-gradient-to-tr from-amber-500 to-yellow-500 shadow-amber-500/20'
+                      : u.role === 'STUDENT'
+                      ? 'bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-indigo-500/20'
+                      : 'bg-gradient-to-tr from-stone-600 to-stone-700'
+                  }`}
+                >
+                  {u.name.charAt(0)}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-black text-sm sm:text-base text-stone-900 dark:text-white">
+                      {u.name}
+                    </span>
+                    {roleBadge(u.role, u.restaurantName)}
                   </div>
-                  <div className="mt-3 flex items-center gap-3 flex-wrap">
-                    {user.role === 'ADMIN' ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[11px] font-bold">
-                        <Crown className="w-3 h-3 fill-amber-500 text-amber-500" />مشرف
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 text-[11px] font-bold">طالب</span>
-                    )}
-                    <span className="flex items-center gap-1 text-xs text-orange-600 font-bold">
-                      <ShoppingBag className="w-3.5 h-3.5" />{user.totalOrders} طلب
+
+                  <div className="flex items-center gap-3 text-xs text-stone-500">
+                    <span className="flex items-center gap-1 font-semibold" dir="ltr">
+                      <Phone className="w-3.5 h-3.5 text-stone-400" />
+                      {u.phone}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-amber-600 font-bold">
-                      <Clock className="w-3.5 h-3.5" />{user.pending} معلق
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-emerald-600 font-bold">
-                      <CheckCircle2 className="w-3.5 h-3.5" />{user.delivered} مسلم
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-stone-400 mt-1">
-                    #{i + 1} · انضم {new Date(user.createdAt || '').toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    <span>•</span>
+                    <span>{u.totalOrders} طلب منفذ</span>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {filtered.length === 0 && !loading && (
-              <div className="py-16 text-center text-stone-400">
-                <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="font-bold">لا يوجد مستخدمون</p>
               </div>
-            )}
-          </>
-        )}
-      </div>
 
-      {/* Edit Modal */}
-      {editingUser && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-br from-stone-900 to-stone-800 p-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                  <Edit3 className="w-5 h-5 text-orange-400" />
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <button
+                  onClick={() => openEdit(u)}
+                  className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-950/30 transition-colors"
+                  title="تعديل بيانات الحساب"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setConfirmDelete(u)}
+                  className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 transition-colors"
+                  title="حذف الحساب"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 1: ADD RESTAURANT ACCOUNT (AUTOMATICALLY ADDS REST) */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {showAddRestModal && (
+          <div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowAddRestModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative max-w-lg w-full bg-white dark:bg-stone-900 rounded-3xl p-6 sm:p-7 shadow-2xl border border-stone-200 dark:border-stone-800 overflow-y-auto max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-stone-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                    <Store className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-stone-900 dark:text-white text-base sm:text-lg">
+                      إضافة حساب مطعم شريك جديد
+                    </h3>
+                    <p className="text-[11px] text-stone-500">
+                      يتم إضافة المطعم تلقائياً للمنصة وإنشاء حساب دخول خاص به
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  onClick={() => setShowAddRestModal(false)}
+                  className="p-1 rounded-lg text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateRestaurantAccount} className="space-y-4 mt-4 text-xs font-bold">
                 <div>
-                  <h3 className="font-black text-white text-sm">تعديل بيانات المستخدم</h3>
-                  <p className="text-stone-400 text-xs mt-0.5">{editingUser.name}</p>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                    اسم المطعم *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="مثال: مطعم عم شكشك، شاورما السلطان..."
+                    value={restForm.restaurantName}
+                    onChange={(e) => setRestForm({ ...restForm, restaurantName: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+                  />
                 </div>
-              </div>
-              <button onClick={() => setEditingUser(null)} className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-stone-700 transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Modal Body */}
-            <div className="p-5 space-y-4">
-              {/* Name */}
-              <div>
-                <label className="block text-xs font-black text-stone-700 dark:text-stone-300 mb-1.5">الاسم الكامل</label>
-                <div className="relative">
-                  <UserIcon className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                    اسم مسؤول / مدير المطعم
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="مثال: الحاج أحمد / إدارة المطعم"
+                    value={restForm.managerName}
+                    onChange={(e) => setRestForm({ ...restForm, managerName: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                      رقم هاتف الدخول (Username) *
+                    </label>
+                    <input
+                      type="tel"
+                      dir="ltr"
+                      required
+                      placeholder="01xxxxxxxxx"
+                      value={restForm.phone}
+                      onChange={(e) => setRestForm({ ...restForm, phone: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                      كلمة مرور حساب المطعم *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="كلمة مرور الدخول"
+                      value={restForm.password}
+                      onChange={(e) => setRestForm({ ...restForm, password: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                    عنوان ومكان المطعم
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="مثال: أمام بوابة جامعة برج العرب التكنولوجية"
+                    value={restForm.address}
+                    onChange={(e) => setRestForm({ ...restForm, address: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                    نبذة / وصف المطعم
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="أشهى ساندوتشات الفول والفلافل والمأكولات السريعة..."
+                    value={restForm.description}
+                    onChange={(e) => setRestForm({ ...restForm, description: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700 focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+
+                <div className="p-3 rounded-2xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/40 text-[11px] text-orange-900 dark:text-orange-300 font-bold leading-relaxed">
+                  💡 بمجرد التأكيد: سيتم إنشاء سجل المطعم وإضافته للمنصة، ويمكن للمطعم فوراً تسجيل الدخول عبر بوابة المطاعم برقم الهاتف وكلمة المرور.
+                </div>
+
+                <div className="flex gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddRestModal(false)}
+                    className="flex-1 py-3 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold"
+                  >
+                    إلغاء
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={submittingRest}
+                    className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black shadow-md shadow-orange-500/20 transition-all disabled:opacity-50"
+                  >
+                    {submittingRest ? 'جاري الإنشاء والربط...' : 'إنشاء وتفعيل حساب المطعم'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================= */}
+      {/* MODAL 2: EDIT EXISTING USER                               */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {editingUser && (
+          <div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setEditingUser(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative max-w-md w-full bg-white dark:bg-stone-900 rounded-3xl p-6 shadow-2xl border border-stone-200 dark:border-stone-800"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-stone-200 dark:border-stone-800">
+                <h3 className="font-black text-stone-900 dark:text-white text-base">
+                  تعديل بيانات الحساب: {editingUser.name}
+                </h3>
+                <button
+                  onClick={() => setEditingUser(null)}
+                  className="p-1 rounded-lg text-stone-400 hover:text-stone-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 mt-4 text-xs font-bold">
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">الاسم</label>
                   <input
                     type="text"
                     value={editForm.name}
-                    onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
-                    className="w-full pr-10 pl-4 py-2.5 rounded-2xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none"
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700"
                   />
                 </div>
-              </div>
 
-              {/* Phone */}
-              <div>
-                <label className="block text-xs font-black text-stone-700 dark:text-stone-300 mb-1.5">رقم الهاتف (للدخول)</label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">رقم الهاتف</label>
                   <input
                     type="tel"
-                    value={editForm.phone}
-                    onChange={e => setEditForm(p => ({ ...p, phone: e.target.value }))}
-                    className="w-full pr-10 pl-4 py-2.5 rounded-2xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none"
                     dir="ltr"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700"
                   />
                 </div>
-              </div>
 
-              {/* Password */}
-              <div>
-                <label className="block text-xs font-black text-stone-700 dark:text-stone-300 mb-1.5">
-                  كلمة المرور الجديدة <span className="text-stone-400 font-normal">(اتركها فاضية لو مش هتغيرها)</span>
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
-                  <input
-                    type={showPass ? 'text' : 'password'}
-                    value={editForm.password}
-                    onChange={e => setEditForm(p => ({ ...p, password: e.target.value }))}
-                    placeholder="كلمة مرور جديدة..."
-                    className="w-full pr-10 pl-10 py-2.5 rounded-2xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute left-3 top-3 text-stone-400 hover:text-stone-600">
-                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">
+                    كلمة المرور الجديدة (اتركها فارغة إذا لم ترد التغيير)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPass ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={editForm.password}
+                      onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(!showPass)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                    >
+                      {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 dark:text-stone-300 mb-1">نوع الرول (الدور)</label>
+                  <select
+                    value={editForm.role}
+                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 border border-stone-200 dark:border-stone-700"
+                  >
+                    <option value="CUSTOMER">عميل (CUSTOMER)</option>
+                    <option value="STUDENT">طالب جامعي (STUDENT)</option>
+                    <option value="RESTAURANT">إدارة مطعم (RESTAURANT)</option>
+                    <option value="ADMIN">إدارة عليا (ADMIN)</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-2.5 pt-3">
+                  <button
+                    onClick={() => setEditingUser(null)}
+                    className="flex-1 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 font-bold"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={saving}
+                    className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black transition-colors disabled:opacity-50"
+                  >
+                    {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
-              {/* Role */}
-              <div>
-                <label className="block text-xs font-black text-stone-700 dark:text-stone-300 mb-1.5">الصلاحية</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setEditForm(p => ({ ...p, role: 'USER' }))}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-2xl border text-xs font-bold transition-all ${editForm.role === 'USER'
-                      ? 'bg-stone-800 text-white border-stone-800'
-                      : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:border-stone-400'
-                      }`}
-                  >
-                    <UserIcon className="w-4 h-4" />طالب
-                  </button>
-                  <button
-                    onClick={() => setEditForm(p => ({ ...p, role: 'ADMIN' }))}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-2xl border text-xs font-bold transition-all ${editForm.role === 'ADMIN'
-                      ? 'bg-amber-500 text-white border-amber-500'
-                      : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:border-amber-400'
-                      }`}
-                  >
-                    <Shield className="w-4 h-4" />مشرف
-                  </button>
-                </div>
+      {/* Confirm Delete Dialog */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setConfirmDelete(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="max-w-sm w-full bg-white dark:bg-stone-900 rounded-3xl p-6 shadow-2xl border border-stone-200 dark:border-stone-800 text-center space-y-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto">
+                <Trash2 className="w-6 h-6" />
               </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-5 pb-5 flex gap-3">
-              <button
-                onClick={() => setEditingUser(null)}
-                className="flex-1 py-3 rounded-2xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 font-bold text-sm hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-sm flex items-center justify-center gap-2 hover:from-orange-600 hover:to-amber-600 disabled:opacity-60 transition-all shadow-lg shadow-orange-500/25"
-              >
-                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {saving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
-              </button>
-            </div>
+              <h3 className="font-black text-stone-900 dark:text-white">تأكيد حذف الحساب</h3>
+              <p className="text-xs text-stone-500">
+                هل أنت متأكد من رغبتك في حذف حساب <strong className="text-stone-800 dark:text-stone-200">{confirmDelete.name}</strong>؟ لا يمكن التراجع عن هذا الإجراء.
+              </p>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 text-xs font-bold"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={() => handleDelete(confirmDelete)}
+                  disabled={deleting === confirmDelete.id}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black transition-colors"
+                >
+                  {deleting === confirmDelete.id ? 'جاري الحذف...' : 'حذف نهائياً'}
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-
-      {/* Delete Confirm Modal */}
-      {confirmDelete && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-2xl p-6 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-7 h-7 text-red-500" />
-            </div>
-            <h3 className="text-lg font-black text-stone-900 dark:text-white mb-1">تأكيد الحذف</h3>
-            <p className="text-sm text-stone-500 mb-1">هتحذف المستخدم:</p>
-            <p className="font-black text-orange-600 mb-1">{confirmDelete.name}</p>
-            <p className="text-xs text-stone-400 font-mono mb-5" dir="ltr">{confirmDelete.phone}</p>
-            <p className="text-xs text-red-500 font-bold mb-5 flex items-center justify-center gap-1.5">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>العملية دي مش ممكن تتراجع فيها!</span>
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                className="flex-1 py-3 rounded-2xl border border-stone-200 dark:border-stone-700 text-stone-600 font-bold text-sm hover:bg-stone-50 transition-colors"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={() => handleDelete(confirmDelete)}
-                disabled={deleting === confirmDelete.id}
-                className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-black text-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors"
-              >
-                {deleting === confirmDelete.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                نعم، احذف
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

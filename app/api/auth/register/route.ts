@@ -6,7 +6,7 @@ import { createSessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, phone, password, role } = body;
+    const { name, phone, password, role, studentIdImage } = body;
 
     if (!name || !phone) {
       return NextResponse.json(
@@ -22,6 +22,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // STUDENT must upload ID image
+    if (role === 'STUDENT' && !studentIdImage) {
+      return NextResponse.json(
+        { error: 'يرجى رفع صورة الكرنيه لتسجيل حساب طالب' },
+        { status: 400 }
+      );
+    }
+
     const existing = await db.getUserByPhone(phone);
     if (existing) {
       return NextResponse.json(
@@ -32,12 +40,27 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = password ? await bcrypt.hash(password, 8) : await bcrypt.hash('123456', 8);
 
+    // Determine role - only allow CUSTOMER or STUDENT from public registration
+    const allowedRole = role === 'STUDENT' ? 'STUDENT' : 'CUSTOMER';
+
     const newUser = await db.createUser({
       name: name.trim(),
       phone: phone.trim(),
       passwordHash,
-      role: role === 'ADMIN' ? 'ADMIN' : 'USER',
+      role: allowedRole,
+      studentIdImage: role === 'STUDENT' ? studentIdImage : undefined,
+      status: role === 'STUDENT' ? 'PENDING_VERIFICATION' : 'ACTIVE',
     });
+
+    // STUDENT accounts wait for approval - no session cookie yet
+    if (allowedRole === 'STUDENT') {
+      return NextResponse.json({
+        success: true,
+        pendingVerification: true,
+        message: 'تم إرسال طلبك بنجاح! سيتم مراجعة الكرنيه وتفعيل حسابك خلال 24 ساعة',
+        user: { id: newUser.id, name: newUser.name, role: 'STUDENT', status: 'PENDING_VERIFICATION' },
+      });
+    }
 
     const token = createSessionToken(newUser);
 
@@ -62,3 +85,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+

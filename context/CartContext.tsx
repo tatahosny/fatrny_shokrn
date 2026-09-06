@@ -1,25 +1,30 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { FoodItem, Order } from '@/lib/types';
+import { FoodItem, Order, Restaurant } from '@/lib/types';
 import { useToast } from './ToastContext';
 import { playCartSound } from '@/lib/sound';
 import confetti from 'canvas-confetti';
 
 export interface CartItem {
+  id: string;
   food: FoodItem;
   quantity: number;
+  notes?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
+  selectedRestaurant: Restaurant | null;
+  setSelectedRestaurant: (restaurant: Restaurant | null) => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
-  addToCart: (food: FoodItem, quantity?: number) => void;
-  updateQuantity: (foodId: string, quantity: number) => void;
-  removeFromCart: (foodId: string) => void;
+  addToCart: (food: FoodItem, quantity?: number, notes?: string) => void;
+  updateQuantity: (identifier: string, quantity: number) => void;
+  updateItemNotes: (identifier: string, notes: string) => void;
+  removeFromCart: (identifier: string) => void;
   clearCart: () => void;
   favorites: string[];
   toggleFavorite: (foodId: string) => void;
@@ -33,25 +38,52 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
 
-  // استرجاع السلة والمفضلة من التخزين المحلي
+  // استرجاع السلة والمفضلة والمطعم المختار من التخزين المحلي
   useEffect(() => {
     try {
       const savedCart = localStorage.getItem('fetarni_cart');
       if (savedCart) {
-        setItems(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) {
+          setItems(
+            parsed.map((it: CartItem, idx: number) => ({
+              ...it,
+              id: it.id || `cart-${it.food?.id || 'item'}-${idx}`,
+              notes: it.notes || '',
+            }))
+          );
+        }
       }
       const savedFavs = localStorage.getItem('fetarni_favs');
       if (savedFavs) {
         setFavorites(JSON.parse(savedFavs));
       }
+      const savedRest = localStorage.getItem('fetarni_restaurant');
+      if (savedRest) {
+        setSelectedRestaurant(JSON.parse(savedRest));
+      }
     } catch {
       // ignore
     }
   }, []);
+
+  // حفظ المطعم المختار
+  useEffect(() => {
+    try {
+      if (selectedRestaurant) {
+        localStorage.setItem('fetarni_restaurant', JSON.stringify(selectedRestaurant));
+      } else {
+        localStorage.removeItem('fetarni_restaurant');
+      }
+    } catch {
+      // ignore
+    }
+  }, [selectedRestaurant]);
 
   // حفظ السلة في التخزين المحلي
   useEffect(() => {
@@ -74,11 +106,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + item.food.price * item.quantity, 0);
 
-  const addToCart = (food: FoodItem, quantity: number = 1) => {
+  const addToCart = (food: FoodItem, quantity: number = 1, notes: string = '') => {
     if (quantity <= 0) return;
 
+    // إذا كان للطبق مطعم محدد ولم يتم تحديد مطعم بعد، نحدده تلقائياً
+    if (food.restaurantId && !selectedRestaurant) {
+      setSelectedRestaurant({
+        id: food.restaurantId,
+        name: food.restaurantName || 'المطعم المختار',
+        slug: '',
+        phone: '',
+        address: '',
+        active: true,
+        createdAt: '',
+      });
+    }
+
+    const cleanNote = (notes || '').trim();
+
     setItems((prev) => {
-      const existingIndex = prev.findIndex((i) => i.food.id === food.id);
+      // نبحث عن صنف مطابق لنفس الأكل ونفس الملاحظة الخاصة
+      const existingIndex = prev.findIndex(
+        (i) => i.food.id === food.id && (i.notes || '').trim() === cleanNote
+      );
+
       if (existingIndex > -1) {
         const updated = [...prev];
         updated[existingIndex] = {
@@ -87,36 +138,68 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         };
         return updated;
       } else {
-        return [...prev, { food, quantity }];
+        const uniqueId = `cart-${food.id}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        return [...prev, { id: uniqueId, food, quantity, notes: cleanNote }];
       }
     });
 
     // تشغيل نغمة الإضافة الخفيفة
     playCartSound();
 
-    showToast(`تمت إضافة "${food.name}" (${quantity}) إلى السلة`, 'success');
+    if (cleanNote) {
+      showToast(`تمت إضافة "${food.name}" (${quantity}) بملاحظة: "${cleanNote}"`, 'success');
+    } else {
+      showToast(`تمت إضافة "${food.name}" (${quantity}) إلى السلة`, 'success');
+    }
   };
 
-  const updateQuantity = (foodId: string, quantity: number) => {
+  const updateQuantity = (identifier: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(foodId);
+      removeFromCart(identifier);
       return;
     }
 
-    setItems((prev) =>
-      prev.map((item) =>
-        item.food.id === foodId ? { ...item, quantity } : item
-      )
-    );
+    setItems((prev) => {
+      let idx = prev.findIndex((i) => i.id === identifier);
+      if (idx === -1) {
+        idx = prev.findIndex((i) => i.food.id === identifier);
+      }
+      if (idx > -1) {
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], quantity };
+        return updated;
+      }
+      return prev;
+    });
   };
 
-  const removeFromCart = (foodId: string) => {
+  const updateItemNotes = (identifier: string, newNotes: string) => {
     setItems((prev) => {
-      const itemToRemove = prev.find((i) => i.food.id === foodId);
-      if (itemToRemove) {
-        showToast(`تم حذف "${itemToRemove.food.name}" من السلة`, 'info');
+      let idx = prev.findIndex((i) => i.id === identifier);
+      if (idx === -1) {
+        idx = prev.findIndex((i) => i.food.id === identifier);
       }
-      return prev.filter((i) => i.food.id !== foodId);
+      if (idx > -1) {
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], notes: newNotes };
+        return updated;
+      }
+      return prev;
+    });
+  };
+
+  const removeFromCart = (identifier: string) => {
+    setItems((prev) => {
+      let idx = prev.findIndex((i) => i.id === identifier);
+      if (idx === -1) {
+        idx = prev.findIndex((i) => i.food.id === identifier);
+      }
+      if (idx > -1) {
+        const itemToRemove = prev[idx];
+        showToast(`تم حذف "${itemToRemove.food.name}" من السلة`, 'info');
+        return prev.filter((_, i) => i !== idx);
+      }
+      return prev;
     });
   };
 
@@ -151,14 +234,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setIsSubmitting(true);
+      const primaryRestId = selectedRestaurant?.id || items[0]?.food?.restaurantId || undefined;
+      const primaryRestName = selectedRestaurant?.name || items[0]?.food?.restaurantName || undefined;
+
       const payload = {
         items: items.map((i) => ({
           foodItemId: i.food.id,
           quantity: i.quantity,
+          notes: i.notes || '',
         })),
         notes: notes || '',
         guestName,
         guestPhone,
+        restaurantId: primaryRestId,
+        restaurantName: primaryRestName,
       };
 
       const res = await fetch('/api/orders', {
@@ -204,10 +293,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         items,
         totalItems,
         totalPrice,
+        selectedRestaurant,
+        setSelectedRestaurant,
         isCartOpen,
         setIsCartOpen,
         addToCart,
         updateQuantity,
+        updateItemNotes,
         removeFromCart,
         clearCart,
         favorites,

@@ -8,6 +8,9 @@ export interface AuthSession {
   name: string;
   phone: string;
   role: Role;
+  status?: string;
+  restaurantId?: string;
+  restaurantName?: string;
   exp: number;
 }
 
@@ -18,6 +21,9 @@ export function createSessionToken(user: User): string {
     name: user.name,
     phone: user.phone,
     role: user.role,
+    status: user.status || 'ACTIVE',
+    restaurantId: user.restaurantId,
+    restaurantName: user.restaurantName,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 يوماً
   };
   return Buffer.from(JSON.stringify(payload)).toString('base64url');

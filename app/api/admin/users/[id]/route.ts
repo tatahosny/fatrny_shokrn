@@ -101,7 +101,11 @@ export async function DELETE(
       { deletedUserId: id }
     );
 
-    return NextResponse.json({ success: true, message: `تم حذف المستخدم ${user.name} بنجاح` });
+    const message = (user.role === 'RESTAURANT' || user.restaurantId)
+      ? `تم حذف حساب المطعم "${user.restaurantName || user.name}" والمطعم بجميع أصنافه بنجاح`
+      : `تم حذف المستخدم ${user.name} بنجاح`;
+
+    return NextResponse.json({ success: true, message });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'حدث خطأ أثناء الحذف';
     return NextResponse.json({ error: message }, { status: 500 });

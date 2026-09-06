@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Order } from '@/lib/types';
-import { Truck, CheckCircle2, Clock, XCircle, RefreshCw, Phone, User, MapPin, Package } from 'lucide-react';
+import { Truck, CheckCircle2, Clock, XCircle, RefreshCw, Phone, User, MapPin, Package, Sparkles } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -47,9 +47,9 @@ function DeliveryOrderCard({ order, onStatusChange }: {
                 <span>{order.totalItemsCount ?? order.items.reduce((s, i) => s + i.quantity, 0)} قطعة</span>
               </div>
               {order.notes && (
-                <div className="text-xs text-stone-400 mt-1 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                  <span>{order.notes}</span>
+                <div className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1.5 rounded-xl border border-amber-200/80 dark:border-amber-800/40 mt-2 flex items-start gap-1.5 font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{order.notes}</span>
                 </div>
               )}
             </div>
@@ -66,8 +66,13 @@ function DeliveryOrderCard({ order, onStatusChange }: {
           {/* Mini items preview */}
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             {order.items.map((item) => (
-              <span key={item.id} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 text-[11px] text-stone-600 dark:text-stone-300 font-medium">
-                {item.foodName} × {item.quantity}
+              <span key={item.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 dark:bg-stone-800 text-[11px] text-stone-700 dark:text-stone-300 font-bold border border-stone-200/80 dark:border-stone-700">
+                <span>{item.foodName} × {item.quantity}</span>
+                {item.notes && (
+                  <span className="text-amber-700 dark:text-amber-400 font-black bg-amber-100 dark:bg-amber-950/80 px-1.5 py-0.5 rounded text-[10px]">
+                    {item.notes}
+                  </span>
+                )}
               </span>
             ))}
           </div>

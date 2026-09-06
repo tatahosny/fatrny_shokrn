@@ -18,9 +18,17 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const success = await login(phone.trim(), password || undefined);
+    const loggedUser = await login(phone.trim(), password || undefined);
     setLoading(false);
-    if (success) router.push('/');
+    if (loggedUser) {
+      if (loggedUser.role === 'ADMIN') {
+        router.push('/admin');
+      } else if (loggedUser.role === 'RESTAURANT') {
+        router.push('/restaurant');
+      } else {
+        router.push('/');
+      }
+    }
   };
 
   return (

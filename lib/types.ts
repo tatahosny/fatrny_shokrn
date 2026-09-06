@@ -1,6 +1,20 @@
-export type Role = 'USER' | 'ADMIN';
+export type Role = 'USER' | 'ADMIN' | 'RESTAURANT' | 'CUSTOMER' | 'STUDENT';
 
 export type OrderStatus = 'PENDING' | 'DELIVERED' | 'CANCELLED';
+
+export type UserStatus = 'ACTIVE' | 'PENDING_VERIFICATION' | 'REJECTED';
+
+export interface Restaurant {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  phone: string;
+  description?: string;
+  address?: string;
+  active: boolean;
+  createdAt?: string;
+}
 
 export interface User {
   id: string;
@@ -8,6 +22,10 @@ export interface User {
   phone: string;
   passwordHash?: string;
   role: Role;
+  status?: UserStatus;
+  studentIdImage?: string;
+  restaurantId?: string;
+  restaurantName?: string;
   createdAt: string;
 }
 
@@ -24,6 +42,8 @@ export interface FoodItem {
   id: string;
   categoryId: string;
   categoryName?: string;
+  restaurantId?: string;
+  restaurantName?: string;
   name: string;
   description: string;
   price: number;
@@ -41,6 +61,9 @@ export interface OrderItem {
   categoryName?: string;
   quantity: number;
   price?: number;
+  unitPrice?: number;
+  discountPercent?: number;
+  notes?: string;
 }
 
 export interface Order {
@@ -49,12 +72,17 @@ export interface Order {
   userId: string;
   userName: string;
   userPhone: string;
+  userRole?: Role;
+  restaurantId?: string;
+  restaurantName?: string;
   status: OrderStatus;
   notes?: string;
   createdAt: string;
   deliveredAt?: string | null;
   items: OrderItem[];
   totalItemsCount?: number;
+  totalAmount?: number;
+  discountAmount?: number;
 }
 
 export interface ActivityLog {
@@ -74,6 +102,12 @@ export interface AggregatedFoodTotal {
   totalQuantity: number;
   pendingQuantity: number;
   deliveredQuantity: number;
+}
+
+export interface ActiveOrderNote {
+  orderNumber: number;
+  userName: string;
+  notes: string;
 }
 
 export interface UserRanking {
@@ -99,4 +133,32 @@ export interface DashboardStats {
   ordersPerDay: { date: string; count: number }[];
   deliveryStatusDistribution: { status: string; count: number; label: string }[];
   topActiveUsers: { name: string; orders: number; items: number }[];
+}
+
+export interface StudentDiscount {
+  id: string;
+  restaurantId: string;
+  restaurantName?: string;
+  discountPercent: number;
+  active: boolean;
+  createdAt?: string;
+}
+
+export interface ProfitStats {
+  totalRevenue: number;
+  totalOrders: number;
+  totalDelivered: number;
+  totalCancelled: number;
+  netProfit: number;
+  platformFeePercent: number;
+  revenueByRestaurant: { restaurantName: string; revenue: number; orders: number }[];
+  revenueByDay: { date: string; revenue: number }[];
+}
+
+export interface PendingStudent {
+  id: string;
+  name: string;
+  phone: string;
+  studentIdImage: string;
+  createdAt: string;
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { db } from '@/lib/db';
-import { BarChart3, TrendingUp, Package, Clock, CheckCircle2 } from 'lucide-react';
+import { BarChart3, TrendingUp, Package, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 import { AggregatedFoodTotal } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -142,6 +142,42 @@ export default async function TotalsPage() {
           </div>
         </div>
       </div>
+
+      {/* Active Special Notes Section (طحينة، شطة، إلخ) */}
+      {totals.activeNotes && totals.activeNotes.length > 0 && (
+        <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div>
+              <h2 className="font-black text-amber-900 dark:text-amber-200 text-sm sm:text-base">
+                ملاحظات وتعديلات الوجبات المعلقة للتجهيز
+              </h2>
+              <p className="text-xs text-amber-700/80 dark:text-amber-400 mt-0.5">
+                طلبات خاصة من الطلاب (طحينة زيادة، بدون شطة، تسوية، إلخ)
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            {totals.activeNotes.map((noteItem, idx) => (
+              <div
+                key={idx}
+                className="p-3 bg-white dark:bg-stone-900 rounded-2xl border border-amber-200/70 dark:border-amber-800/40 flex items-start gap-3 shadow-xs"
+              >
+                <span className="px-2.5 py-1 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 font-black text-xs shrink-0">
+                  #{noteItem.orderNumber}
+                </span>
+                <div className="min-w-0 flex-1 text-xs">
+                  <div className="font-black text-stone-900 dark:text-stone-100">{noteItem.userName}:</div>
+                  <p className="text-amber-800 dark:text-amber-300 font-extrabold mt-1 leading-relaxed text-xs">
+                    {noteItem.notes}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pending Orders Food List */}
       <div className="bg-white dark:bg-stone-900 rounded-2xl sm:rounded-3xl border border-stone-200 dark:border-stone-800 p-4 sm:p-6 shadow-sm">

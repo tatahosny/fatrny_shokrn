@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { items, notes, guestName, guestPhone } = body;
+    const { items, notes, guestName, guestPhone, restaurantId, restaurantName } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -25,42 +25,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // التحقق من هوية المستخدم (سواء كان مسجلاً أو زائر بمعلومات سريعة)
+    // التحقق الصارم من وجود حساب وجلسة دخول نشطة
     const session = await getCurrentUserFromCookie();
-    let userId = session?.userId;
-    let userName = session?.name || guestName;
-    let userPhone = session?.phone || guestPhone;
-
-    if (!userName || !userPhone) {
+    if (!session || !session.userId) {
       return NextResponse.json(
-        { error: 'يرجى تسجيل الدخول أو إدخال الاسم ورقم الهاتف لتأكيد الطلب' },
+        { error: 'يجب تسجيل الدخول بحسابك أولاً لإتمام الطلب. إرسال الطلبات متاح حصرياً للحسابات المسجلة.' },
         { status: 401 }
       );
     }
 
-    // إذا لم يكن مسجلاً، ننشئ له حساب تلقائي فوراً
-    if (!userId) {
-      const existingUser = await db.getUserByPhone(userPhone);
-      if (existingUser) {
-        userId = existingUser.id;
-        userName = existingUser.name;
-      } else {
-        const newUser = await db.createUser({
-          name: userName,
-          phone: userPhone,
-          passwordHash: '',
-          role: 'USER',
-        });
-        userId = newUser.id;
-      }
-    }
+    const userId = session.userId;
+    const userName = session.name;
+    const userPhone = session.phone;
+
+    const sanitizedItems = items.map((it: { foodItemId: string; quantity: number; notes?: string }) => ({
+      foodItemId: it.foodItemId,
+      quantity: Number(it.quantity) || 1,
+      notes: typeof it.notes === 'string' ? it.notes.trim() : '',
+    }));
 
     const newOrder = await db.createOrder({
       userId,
       userName,
       userPhone,
+      restaurantId: typeof restaurantId === 'string' ? restaurantId : undefined,
+      restaurantName: typeof restaurantName === 'string' ? restaurantName : undefined,
       notes: notes || '',
-      items,
+      items: sanitizedItems,
     });
 
     return NextResponse.json({

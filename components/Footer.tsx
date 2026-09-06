@@ -2,9 +2,24 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { Heart, Shield, Sparkles, UtensilsCrossed } from 'lucide-react';
 
 export default function Footer() {
+  const pathname = usePathname();
+  const { isAdmin } = useAuth();
+
+  const isDashboardRoute =
+    pathname.startsWith('/admin') ||
+    pathname === '/restaurant' ||
+    pathname.startsWith('/restaurant/') ||
+    pathname.startsWith('/restaurant-dashboard');
+
+  if (isDashboardRoute) {
+    return null;
+  }
+
   return (
     <footer className="bg-stone-900 text-stone-300 border-t border-stone-800 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
