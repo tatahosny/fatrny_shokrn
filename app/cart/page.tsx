@@ -1,0 +1,272 @@
+'use client';
+
+import React, { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import { Trash2, Plus, Minus, CheckCircle2, ShoppingBag, ArrowRight, User, Phone, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+export default function CartPage() {
+  const {
+    items,
+    totalItems,
+    totalPrice,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    submitOrder,
+    isSubmitting,
+  } = useCart();
+
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const [notes, setNotes] = useState('');
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleCheckout = async () => {
+    setErrorMsg('');
+    if (!user && (!guestName.trim() || !guestPhone.trim())) {
+      setErrorMsg('يرجى إدخال اسمك ورقم هاتفك أولاً لتسجيل الطلب باسمك');
+      return;
+    }
+
+    const order = await submitOrder(notes, guestName, guestPhone);
+    if (order) {
+      router.push('/my-orders');
+    }
+  };
+
+  if (items.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-24 h-24 rounded-3xl bg-orange-100 dark:bg-orange-950/40 text-orange-500 flex items-center justify-center text-4xl mx-auto shadow-inner">
+          🛒
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
+          عربة التسوق فارغة حالياً
+        </h1>
+        <p className="text-sm text-stone-500 max-w-md mx-auto">
+          لم تقم بإضافة أي وجبة إلى عربة التسوق بعد. تصفح منيو إفطار جامعة برج العرب واختر وجبتك المفضلة!
+        </p>
+        <div>
+          <Link
+            href="/menu"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition-all active:scale-95"
+          >
+            <span>استعراض قائمة الطعام 🍽️</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      
+      {/* Page Title */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 dark:text-white flex items-center gap-3">
+            <span>عربة التسوق 🛒</span>
+            <span className="text-sm px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 font-bold">
+              {totalItems} أصناف
+            </span>
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
+            راجع تفاصيل طلبك وحدد مكان التواجد بالجامعة لتسهيل الاستلام
+          </p>
+        </div>
+
+        <button
+          onClick={clearCart}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-stone-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>تفريغ السلة</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Items List (Table style) */}
+        <div className="lg:col-span-7 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden divide-y divide-stone-100 dark:divide-stone-800">
+          <div className="p-4 bg-stone-50 dark:bg-stone-850 text-xs font-black text-stone-600 dark:text-stone-300 grid grid-cols-12 gap-2">
+            <span className="col-span-6">المنتج</span>
+            <span className="col-span-3 text-center">الكمية</span>
+            <span className="col-span-3 text-left">الإجمالي</span>
+          </div>
+
+          {items.map(({ food, quantity }) => (
+            <div key={food.id} className="p-4 grid grid-cols-12 gap-2 items-center">
+              
+              {/* Product Info */}
+              <div className="col-span-6 flex items-center gap-3">
+                <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-stone-100 shrink-0">
+                  <Image src={food.image} alt={food.name} fill className="object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-xs sm:text-sm text-stone-900 dark:text-stone-100 truncate">
+                    {food.name}
+                  </h3>
+                  <span className="text-[11px] text-orange-600 font-semibold">
+                    {food.price > 0 ? `${food.price} ج.م` : 'مجاني'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quantity Stepper */}
+              <div className="col-span-3 flex items-center justify-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-xl p-1">
+                <button
+                  onClick={() => updateQuantity(food.id, quantity - 1)}
+                  className="w-6 h-6 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-orange-600"
+                >
+                  <Minus className="w-3 h-3" />
+                </button>
+                <span className="px-1 text-xs font-black text-stone-800 dark:text-stone-100">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => updateQuantity(food.id, quantity + 1)}
+                  className="w-6 h-6 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:text-orange-600"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* Price & Delete */}
+              <div className="col-span-3 flex items-center justify-end gap-2 text-left">
+                <span className="font-black text-xs sm:text-sm text-stone-900 dark:text-stone-100">
+                  {food.price > 0 ? `${food.price * quantity} ج.م` : '—'}
+                </span>
+                <button
+                  onClick={() => removeFromCart(food.id)}
+                  className="p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+            </div>
+          ))}
+        </div>
+
+        {/* Checkout Summary Card */}
+        <div className="lg:col-span-5 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 shadow-sm space-y-6">
+          <h2 className="text-lg font-black text-stone-900 dark:text-white pb-3 border-b border-stone-100 dark:border-stone-800">
+            تأكيد وبيانات الطلب
+          </h2>
+
+          {/* Student Profile / Guest Info */}
+          {!user ? (
+            <div className="space-y-3 p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200/80 dark:border-orange-800/40">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-orange-900 dark:text-orange-300">
+                  بيانات الطالب للتسليم:
+                </span>
+                <Link href="/login" className="text-xs font-bold text-orange-600 underline">
+                  تسجيل الدخول
+                </Link>
+              </div>
+              <div className="space-y-2">
+                <div className="relative">
+                  <User className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
+                  <input
+                    type="text"
+                    placeholder="الاسم ثلاثي"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    className="w-full text-xs pr-9 pl-3 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 focus:ring-2 focus:ring-orange-500 outline-none"
+                  />
+                </div>
+                <div className="relative">
+                  <Phone className="w-4 h-4 absolute right-3 top-3 text-stone-400" />
+                  <input
+                    type="tel"
+                    placeholder="رقم الهاتف (010...)"
+                    value={guestPhone}
+                    onChange={(e) => setGuestPhone(e.target.value)}
+                    className="w-full text-xs pr-9 pl-3 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 focus:ring-2 focus:ring-orange-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
+              <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-sm">
+                {user.name.charAt(0)}
+              </div>
+              <div>
+                <div className="text-xs font-black text-stone-900 dark:text-white">{user.name}</div>
+                <div className="text-[11px] text-stone-500">{user.phone}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Location / Notes Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-orange-500" />
+              <span>مكان التواجد بالجامعة أو ملاحظات إضافية:</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="مثال: مكتب إدارة التقديمات - الدور الثاني بجوار قاعة 104"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full text-xs p-3 rounded-2xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+          </div>
+
+          {errorMsg && (
+            <p className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl">{errorMsg}</p>
+          )}
+
+          {/* Order Summary */}
+          <div className="space-y-2 pt-2 border-t border-stone-100 dark:border-stone-800 text-xs">
+            <div className="flex justify-between text-stone-500">
+              <span>إجمالي عدد الوجبات:</span>
+              <span className="font-bold text-stone-800 dark:text-stone-200">{totalItems} قطعة</span>
+            </div>
+            <div className="flex justify-between text-stone-500">
+              <span>تكلفة التوصيل في الحرم الجامعي:</span>
+              <span className="font-bold text-emerald-600">مجاناً ❤️</span>
+            </div>
+            <div className="flex justify-between text-base font-black text-stone-900 dark:text-white pt-2 border-t border-stone-100 dark:border-stone-800">
+              <span>الإجمالي الكلي:</span>
+              <span className="text-orange-600 dark:text-orange-400">
+                {totalPrice > 0 ? `${totalPrice} ج.م` : 'مجاني'}
+              </span>
+            </div>
+          </div>
+
+          {/* Checkout Button */}
+          <button
+            onClick={handleCheckout}
+            disabled={isSubmitting}
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <span>جاري تسجيل وتأكيد الطلب... ⏳</span>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                <span>تأكيد الطلب 🍳</span>
+              </>
+            )}
+          </button>
+
+          <p className="text-[11px] text-center text-stone-400 leading-tight">
+            بمجرد التأكيد سيتم إرسال الطلب فوراً لمشرفي إدارة التقديمات للبدء في تجميع الوجبات
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
