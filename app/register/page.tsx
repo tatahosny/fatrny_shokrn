@@ -109,7 +109,7 @@ export default function RegisterPage() {
       if (result.pendingVerification) {
         setIsSubmittedPending(true);
       } else {
-        router.push('/menu');
+        router.push('/restaurants');
       }
     }
   };

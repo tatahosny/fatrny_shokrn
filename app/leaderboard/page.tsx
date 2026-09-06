@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { UserRanking } from '@/lib/types';
-import { Crown, Flame, Trophy, Medal, Award, Star, TrendingUp, Users, ShoppingBag } from 'lucide-react';
+import { Crown, Flame, Trophy, Medal, Award, Star, TrendingUp, Users, ShoppingBag, Store } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -215,8 +215,9 @@ export default function LeaderboardPage() {
         <p className="text-sm font-bold text-stone-700 dark:text-stone-300">
           اطلب إفطارك وارتقِ في الترتيب!
         </p>
-        <Link href="/menu" className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-sm shadow-md shadow-orange-500/25 transition-all">
-          <span>اطلب دلوقتي من المنيو</span>
+        <Link href="/restaurants" className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-sm shadow-md shadow-orange-500/25 transition-all">
+          <Store className="w-4 h-4" />
+          <span>تصفح المطاعم واطلب الآن</span>
         </Link>
       </div>
     </div>

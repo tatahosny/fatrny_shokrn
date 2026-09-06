@@ -75,14 +75,14 @@ export default function CartPage() {
           عربة التسوق فارغة حالياً
         </h1>
         <p className="text-sm text-stone-500 max-w-md mx-auto">
-          لم تقم بإضافة أي وجبة إلى عربة التسوق بعد. تصفح منيو إفطار جامعة برج العرب واختر وجبتك المفضلة!
+          لم تقم بإضافة أي وجبة إلى عربة التسوق بعد. تصفح مطاعم جامعة برج العرب واختر وجبتك المفضلة!
         </p>
         <div>
           <Link
-            href="/menu"
+            href="/restaurants"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition-all active:scale-95"
           >
-            <span>استعراض قائمة الطعام</span>
+            <span>استعراض المطاعم</span>
           </Link>
         </div>
       </div>

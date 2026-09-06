@@ -369,15 +369,15 @@ export default function ProfilePage() {
         </Link>
 
         <Link
-          href="/menu"
-          className="group bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-emerald-400 hover:shadow-md transition-all flex flex-col gap-2"
+          href="/restaurants"
+          className="group bg-white dark:bg-stone-900 p-4 sm:p-5 rounded-2xl border border-stone-200 dark:border-stone-800 hover:border-orange-400 hover:shadow-md transition-all flex flex-col gap-2"
         >
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
-            <ShoppingBag className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center">
+            <Store className="w-5 h-5" />
           </div>
           <div>
-            <div className="font-black text-stone-900 dark:text-white text-xs sm:text-sm">المنيو الكامل</div>
-            <div className="text-[11px] text-stone-500">اطلب وجبتك المفضلة</div>
+            <div className="font-black text-stone-900 dark:text-white text-xs sm:text-sm">المطاعم الشريكة</div>
+            <div className="text-[11px] text-stone-500">تصفح المطاعم واطلب وجبتك</div>
           </div>
         </Link>
 

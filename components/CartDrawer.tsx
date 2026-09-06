@@ -156,15 +156,15 @@ export default function CartDrawer() {
                         عربتك فارغة حالياً
                       </h3>
                       <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-xs">
-                        اختار وجباتك المفضلة من المنيو وأضفها إلى السلة لتأكيد طلبك
+                        اختار وجباتك المفضلة من مطاعم الجامعة وأضفها إلى السلة لتأكيد طلبك
                       </p>
                     </div>
                     <Link
-                      href="/menu"
+                      href="/restaurants"
                       onClick={() => setIsCartOpen(false)}
                       className="px-6 py-2.5 rounded-2xl bg-orange-500 text-white font-bold text-sm shadow-md shadow-orange-500/25 hover:bg-orange-600 transition-all"
                     >
-                      تصفح المنيو الآن
+                      تصفح المطاعم الآن
                     </Link>
                   </div>
                 ) : (

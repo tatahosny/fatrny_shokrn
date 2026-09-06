@@ -56,8 +56,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/menu" className="hover:text-orange-400 transition-colors">
-                  قائمة وجبات الإفطار
+                <Link href="/restaurants" className="hover:text-orange-400 transition-colors">
+                  المطاعم الشريكة
                 </Link>
               </li>
               <li>

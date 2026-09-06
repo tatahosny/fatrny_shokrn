@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Restaurant, FoodItem } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import RestaurantCard from '@/components/RestaurantCard';
-import { Store, ArrowLeft, UtensilsCrossed, CheckCircle2, Sparkles } from 'lucide-react';
+import { Store, ArrowLeft, UtensilsCrossed, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RestaurantsPage() {
@@ -123,20 +123,6 @@ export default function RestaurantsPage() {
           ))}
         </div>
       )}
-
-      {/* Quick access to general menu */}
-      <div className="text-center pt-6 border-t border-stone-200 dark:border-stone-800">
-        <p className="text-sm text-stone-500 dark:text-stone-400 mb-3">
-          أو تقدر تطلع على قائمة الطعام الكاملة من جميع المطاعم
-        </p>
-        <Link
-          href="/menu"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold text-sm hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
-        >
-          <Sparkles className="w-4 h-4 text-orange-500" />
-          قائمة الطعام الشاملة
-        </Link>
-      </div>
     </div>
   );
 }

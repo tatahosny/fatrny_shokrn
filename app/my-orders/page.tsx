@@ -319,10 +319,10 @@ export default function MyOrdersPage() {
             تصفح قائمة مطاعم ووجبات جامعة برج العرب التكنولوجية واطلب فطارك الآن
           </p>
           <Link
-            href="/menu"
+            href="/restaurants"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shadow-md shadow-orange-500/20 transition-all"
           >
-            <span>استعراض المنيو</span>
+            <span>استعراض المطاعم</span>
           </Link>
         </div>
       ) : (
