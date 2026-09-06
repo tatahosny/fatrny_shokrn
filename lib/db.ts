@@ -448,7 +448,7 @@ export const db = {
     let query = `
       SELECT id, category_id as "categoryId", category_name as "categoryName",
              restaurant_id as "restaurantId", restaurant_name as "restaurantName",
-             name, description, price::float as price, image, available, created_at
+             name, description, price::float as price, image, available, variants, created_at
       FROM food_items
       WHERE 1=1
     `;
@@ -484,6 +484,7 @@ export const db = {
       price: Number(row.price) || 0,
       image: row.image,
       available: Boolean(row.available),
+      variants: Array.isArray(row.variants) ? row.variants : undefined,
       createdAt: toIso(row.created_at),
     }));
   },
@@ -492,7 +493,7 @@ export const db = {
     const res = await pool.query(
       `SELECT id, category_id as "categoryId", category_name as "categoryName",
               restaurant_id as "restaurantId", restaurant_name as "restaurantName",
-              name, description, price::float as price, image, available, created_at
+              name, description, price::float as price, image, available, variants, created_at
        FROM food_items
        WHERE id = $1`,
       [id]
@@ -511,6 +512,7 @@ export const db = {
       price: Number(row.price) || 0,
       image: row.image,
       available: Boolean(row.available),
+      variants: Array.isArray(row.variants) ? row.variants : undefined,
       createdAt: toIso(row.created_at),
     };
   },
@@ -538,11 +540,11 @@ export const db = {
     }
 
     const res = await pool.query(
-      `INSERT INTO food_items (id, category_id, category_name, restaurant_id, restaurant_name, name, description, price, image, available, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO food_items (id, category_id, category_name, restaurant_id, restaurant_name, name, description, price, image, available, variants, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING id, category_id as "categoryId", category_name as "categoryName",
                  restaurant_id as "restaurantId", restaurant_name as "restaurantName",
-                 name, description, price::float as price, image, available, created_at`,
+                 name, description, price::float as price, image, available, variants, created_at`,
       [
         id,
         item.categoryId,
@@ -554,6 +556,7 @@ export const db = {
         item.price || 0,
         item.image,
         item.available !== false,
+        item.variants ? JSON.stringify(item.variants) : null,
         createdAt,
       ]
     );
@@ -575,6 +578,7 @@ export const db = {
       price: Number(row.price),
       image: row.image,
       available: Boolean(row.available),
+      variants: Array.isArray(row.variants) ? row.variants : undefined,
       createdAt: toIso(row.created_at),
     };
   },
@@ -614,16 +618,17 @@ export const db = {
       price: updates.price !== undefined ? updates.price : existing.price,
       image: updates.image !== undefined ? updates.image : existing.image,
       available: updates.available !== undefined ? updates.available : existing.available,
+      variants: updates.variants !== undefined ? updates.variants : existing.variants,
     };
 
     const res = await pool.query(
       `UPDATE food_items
        SET category_id = $1, category_name = $2, restaurant_id = $3, restaurant_name = $4,
-           name = $5, description = $6, price = $7, image = $8, available = $9
-       WHERE id = $10
+           name = $5, description = $6, price = $7, image = $8, available = $9, variants = $10
+       WHERE id = $11
        RETURNING id, category_id as "categoryId", category_name as "categoryName",
                  restaurant_id as "restaurantId", restaurant_name as "restaurantName",
-                 name, description, price::float as price, image, available, created_at`,
+                 name, description, price::float as price, image, available, variants, created_at`,
       [
         updated.categoryId,
         updated.categoryName,
@@ -634,6 +639,7 @@ export const db = {
         updated.price,
         updated.image,
         updated.available,
+        updated.variants ? JSON.stringify(updated.variants) : null,
         id,
       ]
     );
@@ -651,6 +657,7 @@ export const db = {
       price: Number(row.price),
       image: row.image,
       available: Boolean(row.available),
+      variants: Array.isArray(row.variants) ? row.variants : undefined,
       createdAt: toIso(row.created_at),
     };
   },

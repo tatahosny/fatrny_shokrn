@@ -38,6 +38,12 @@ export interface Category {
   createdAt?: string;
 }
 
+export interface FoodVariant {
+  name: string;
+  price: number;
+  isDefault?: boolean;
+}
+
 export interface FoodItem {
   id: string;
   categoryId: string;
@@ -49,6 +55,7 @@ export interface FoodItem {
   price: number;
   image: string;
   available: boolean;
+  variants?: FoodVariant[];
   createdAt?: string;
 }
 

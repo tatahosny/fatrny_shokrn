@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FoodItem } from '@/lib/types';
+import { FoodItem, FoodVariant } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
 import { Plus, Minus, ShoppingCart, Heart, Check, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +21,23 @@ const QUICK_FOOD_NOTES = [
 ];
 
 export default function FoodCard({ food }: FoodCardProps) {
+  const [selectedVariant, setSelectedVariant] = useState<FoodVariant | null>(() => {
+    if (food.variants && food.variants.length > 0) {
+      return food.variants.find((v) => v.isDefault) || food.variants[0];
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (food.variants && food.variants.length > 0) {
+      setSelectedVariant(food.variants.find((v) => v.isDefault) || food.variants[0]);
+    } else {
+      setSelectedVariant(null);
+    }
+  }, [food]);
+
+  const currentPrice = selectedVariant ? selectedVariant.price : food.price;
+
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
@@ -44,7 +61,16 @@ export default function FoodCard({ food }: FoodCardProps) {
   };
 
   const handleAdd = () => {
-    addToCart(food, quantity, notes);
+    const itemToAdd: FoodItem = selectedVariant
+      ? {
+          ...food,
+          id: `${food.id}-${selectedVariant.name.replace(/\s+/g, '_')}`,
+          name: `${food.name} (${selectedVariant.name})`,
+          price: selectedVariant.price,
+        }
+      : food;
+
+    addToCart(itemToAdd, quantity, notes);
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
@@ -98,23 +124,72 @@ export default function FoodCard({ food }: FoodCardProps) {
           <Heart className={`w-4 h-4 ${favorite ? 'fill-white' : ''}`} />
         </button>
 
-        {/* Price Tag (Optional / Present) */}
-        {food.price > 0 && (
-          <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-xl bg-stone-950/80 backdrop-blur-md border border-white/10 text-white text-xs font-black">
-            {food.price} ج.م
+        {/* Price Tag */}
+        {currentPrice > 0 && (
+          <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-xl bg-stone-950/80 backdrop-blur-md border border-white/10 text-white text-xs font-black shadow-md">
+            {currentPrice} ج.م
           </div>
         )}
       </div>
 
       {/* Card Content */}
       <div className="flex flex-col flex-grow p-5 justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-black text-stone-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-snug">
-            {food.name}
-          </h3>
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
-            {food.description}
-          </p>
+        <div className="space-y-2">
+          <div>
+            <h3 className="text-lg font-black text-stone-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-snug">
+              {food.name}
+            </h3>
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
+              {food.description}
+            </p>
+          </div>
+
+          {/* Bread Type Selector (إذا كان للصنف اختيارات عيش مثل فينو / ملفوف سوري) */}
+          {food.variants && food.variants.length > 1 && (
+            <div className="pt-2 border-t border-dashed border-stone-200 dark:border-stone-700/60 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-stone-500 dark:text-stone-400">
+                <span>نوع العيش:</span>
+                <span className="text-orange-600 dark:text-orange-400 font-black">
+                  {selectedVariant?.name} ({selectedVariant?.price} ج.م)
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {food.variants.map((v) => {
+                  const isSelected = selectedVariant?.name === v.name;
+                  const isMalfoof = v.name.includes('ملفوف') || v.name.includes('سوري');
+                  return (
+                    <button
+                      key={v.name}
+                      type="button"
+                      onClick={() => setSelectedVariant(v)}
+                      className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-sm shadow-orange-500/20'
+                          : 'bg-stone-50 dark:bg-stone-900/60 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-orange-400'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1">
+                        <span>{isMalfoof ? '🌯' : '🥖'}</span>
+                        <span className="truncate">{v.name}</span>
+                      </span>
+                      <span className={`text-[11px] font-extrabold ${isSelected ? 'text-white' : 'text-orange-600 dark:text-orange-400'}`}>
+                        {v.price}ج
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Single variant badge (إذا كان الصنف عيش واحد فقط محدد) */}
+          {food.variants && food.variants.length === 1 && (
+            <div className="pt-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 text-[11px] font-bold border border-orange-200 dark:border-orange-900/40">
+                <span>{food.variants[0].name.includes('ملفوف') || food.variants[0].name.includes('سوري') ? '🌯 عيش ملفوف (سوري)' : '🥖 عيش فينو'}</span>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Actions & Note under the order */}
