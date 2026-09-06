@@ -1173,7 +1173,8 @@ export const db = {
     >();
 
     for (const user of users) {
-      if (user.role === 'ADMIN' && user.id === 'user-admin-ahmed') continue;
+      // استبعاد كل المشرفين وإدارة المطاعم من القائمة — التنافس للطلاب والأعضاء فقط
+      if (user.role === 'ADMIN' || user.role === 'RESTAURANT') continue;
       userStatsMap.set(user.id, {
         userId: user.id,
         userName: user.name,
@@ -1188,19 +1189,9 @@ export const db = {
     for (const order of orders) {
       if (order.status === 'CANCELLED') continue;
 
-      let stats = userStatsMap.get(order.userId);
-      if (!stats) {
-        stats = {
-          userId: order.userId,
-          userName: order.userName,
-          userPhone: order.userPhone,
-          totalOrders: 0,
-          totalItems: 0,
-          pizzaCount: 0,
-          foulCount: 0,
-        };
-        userStatsMap.set(order.userId, stats);
-      }
+      const stats = userStatsMap.get(order.userId);
+      // لو المستخدم مش في الـ map (أدمن أو مطعم) نتخطى طلبه
+      if (!stats) continue;
 
       stats.totalOrders += 1;
 
