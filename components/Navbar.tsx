@@ -26,14 +26,17 @@ export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
   const { totalItems, setIsCartOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark') ||
-      localStorage.getItem('theme') === 'dark';
+    const savedTheme = localStorage.getItem('theme');
+    const isDark = savedTheme ? savedTheme === 'dark' : true;
     if (isDark) {
       document.documentElement.classList.add('dark');
       setIsDarkMode(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      setIsDarkMode(false);
     }
   }, []);
 

@@ -36,7 +36,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" className={`${cairo.variable} h-full`}>
+    <html lang="ar" dir="rtl" className={`dark ${cairo.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.getItem('theme') === 'light') {
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col font-sans bg-[#fffdfa] dark:bg-stone-950 text-stone-900 dark:text-stone-100 antialiased selection:bg-orange-500 selection:text-white">
         <ToastProvider>
           <AuthProvider>
