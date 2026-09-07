@@ -128,7 +128,7 @@ export const db = {
     name: string;
     phone: string;
     passwordHash: string;
-    role?: 'USER' | 'ADMIN' | 'RESTAURANT' | 'CUSTOMER' | 'STUDENT';
+    role?: 'USER' | 'ADMIN' | 'RESTAURANT' | 'CUSTOMER' | 'STUDENT' | 'DELIVERY';
     restaurantId?: string;
     studentIdImage?: string;
     status?: 'ACTIVE' | 'PENDING_VERIFICATION' | 'REJECTED';
@@ -679,6 +679,7 @@ export const db = {
     search?: string;
     userId?: string;
     restaurantId?: string;
+    deliveryPersonId?: string;
     todayOnly?: boolean;
   }): Promise<Order[]> {
     let whereClause = 'WHERE 1=1';
@@ -692,6 +693,11 @@ export const db = {
     if (options?.restaurantId && options.restaurantId !== 'ALL') {
       params.push(options.restaurantId);
       whereClause += ` AND o.restaurant_id = $${params.length}`;
+    }
+
+    if (options?.deliveryPersonId) {
+      params.push(options.deliveryPersonId);
+      whereClause += ` AND o.delivery_person_id = $${params.length}`;
     }
 
     if (options?.status && options.status !== 'ALL') {
@@ -723,6 +729,8 @@ export const db = {
         o.notes,
         o.address,
         o.location_url as "locationUrl",
+        o.delivery_person_id as "deliveryPersonId",
+        o.delivery_person_name as "deliveryPersonName",
         o.total_amount::float as "totalAmount",
         o.discount_amount::float as "discountAmount",
         o.created_at as "createdAt",
@@ -769,6 +777,8 @@ export const db = {
         notes: row.notes || '',
         address: row.address || '',
         locationUrl: row.locationUrl || '',
+        deliveryPersonId: row.deliveryPersonId || undefined,
+        deliveryPersonName: row.deliveryPersonName || undefined,
         totalAmount: row.totalAmount !== null ? Number(row.totalAmount) : undefined,
         discountAmount: row.discountAmount !== null ? Number(row.discountAmount) : 0,
         createdAt: toIso(row.createdAt),
@@ -794,6 +804,8 @@ export const db = {
         o.notes,
         o.address,
         o.location_url as "locationUrl",
+        o.delivery_person_id as "deliveryPersonId",
+        o.delivery_person_name as "deliveryPersonName",
         o.total_amount::float as "totalAmount",
         o.discount_amount::float as "discountAmount",
         o.created_at as "createdAt",
@@ -840,6 +852,8 @@ export const db = {
       notes: row.notes || '',
       address: row.address || '',
       locationUrl: row.locationUrl || '',
+      deliveryPersonId: row.deliveryPersonId || undefined,
+      deliveryPersonName: row.deliveryPersonName || undefined,
       totalAmount: row.totalAmount !== null ? Number(row.totalAmount) : undefined,
       discountAmount: row.discountAmount !== null ? Number(row.discountAmount) : 0,
       createdAt: toIso(row.createdAt),
@@ -1614,6 +1628,319 @@ export const db = {
   // ================= USER STATUS UPDATE =================
   async updateUserStatus(id: string, status: import('./types').UserStatus): Promise<void> {
     await pool.query(`UPDATE users SET status = $1 WHERE id = $2`, [status, id]);
+  },
+
+  // ================= DELIVERY ACCOUNTS & ORDERS =================
+  async getDeliveryAccounts(restaurantId?: string): Promise<import('./types').DeliveryAccount[]> {
+    let query = `
+      SELECT 
+        u.id, 
+        u.name, 
+        u.phone, 
+        u.restaurant_id as "restaurantId", 
+        r.name as "restaurantName",
+        u.created_at as "createdAt",
+        COUNT(o.id) FILTER (WHERE o.status = 'OUT_FOR_DELIVERY')::int as "activeOrdersCount"
+      FROM users u
+      LEFT JOIN restaurants r ON u.restaurant_id = r.id
+      LEFT JOIN orders o ON u.id = o.delivery_person_id
+      WHERE u.role = 'DELIVERY'
+    `;
+    const params: unknown[] = [];
+    if (restaurantId) {
+      params.push(restaurantId);
+      query += ` AND u.restaurant_id = $1`;
+    }
+    query += ` GROUP BY u.id, u.name, u.phone, u.restaurant_id, r.name, u.created_at ORDER BY u.created_at DESC`;
+
+    const res = await pool.query(query, params);
+    return res.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      phone: row.phone,
+      restaurantId: row.restaurantId || '',
+      restaurantName: row.restaurantName || '',
+      createdAt: toIso(row.createdAt),
+      activeOrdersCount: row.activeOrdersCount || 0,
+    }));
+  },
+
+  async deleteDeliveryAccount(id: string, restaurantId?: string): Promise<boolean> {
+    let query = `DELETE FROM users WHERE id = $1 AND role = 'DELIVERY'`;
+    const params: unknown[] = [id];
+    if (restaurantId) {
+      query += ` AND restaurant_id = $2`;
+      params.push(restaurantId);
+    }
+    const res = await pool.query(query, params);
+    return (res.rowCount ?? 0) > 0;
+  },
+
+  async assignOrderDelivery(
+    orderId: string,
+    deliveryPersonId: string,
+    deliveryPersonName: string
+  ): Promise<Order | null> {
+    const res = await pool.query(
+      `UPDATE orders
+       SET delivery_person_id = $1, delivery_person_name = $2, status = 'OUT_FOR_DELIVERY'
+       WHERE id = $3
+       RETURNING id, order_number as "orderNumber"`,
+      [deliveryPersonId, deliveryPersonName, orderId]
+    );
+    if (res.rows.length === 0) return null;
+
+    await this.logActivity(
+      `تم إسناد الطلب #${res.rows[0].orderNumber} للديلفري ${deliveryPersonName}`,
+      deliveryPersonId,
+      deliveryPersonName,
+      { orderId, deliveryPersonId, deliveryPersonName }
+    );
+
+    return this.getOrderById(orderId);
+  },
+
+  // ================= DAILY ANALYTICS & STATS =================
+  async getRestaurantAnalytics(restaurantId: string): Promise<import('./types').RestaurantAnalytics> {
+    // 1. Get restaurant info
+    const restRes = await pool.query(`SELECT id, name FROM restaurants WHERE id = $1`, [restaurantId]);
+    const restaurantName = restRes.rows[0]?.name || 'المطعم';
+
+    // 2. Last 30 days daily stats
+    const dailyRes = await pool.query(
+      `SELECT 
+        DATE(o.created_at AT TIME ZONE 'UTC')::text as date,
+        COUNT(*)::int as "totalOrders",
+        COUNT(*) FILTER (WHERE o.status = 'DELIVERED')::int as "deliveredOrders",
+        COUNT(*) FILTER (WHERE o.status = 'CANCELLED')::int as "cancelledOrders",
+        COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'DELIVERED'), 0)::float as "totalRevenue"
+      FROM orders o
+      WHERE o.restaurant_id = $1 AND o.created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(o.created_at AT TIME ZONE 'UTC')
+      ORDER BY date DESC`,
+      [restaurantId]
+    );
+
+    // 3. All time stats
+    const allTimeRes = await pool.query(
+      `SELECT 
+        COUNT(*)::int as total_orders,
+        COALESCE(SUM(total_amount) FILTER (WHERE status = 'DELIVERED'), 0)::float as total_revenue
+      FROM orders
+      WHERE restaurant_id = $1`,
+      [restaurantId]
+    );
+    const allTimeRevenue = parseFloat(allTimeRes.rows[0]?.total_revenue) || 0;
+    const allTimeOrders = parseInt(allTimeRes.rows[0]?.total_orders) || 0;
+
+    // 4. Top items all time
+    const topItemsRes = await pool.query(
+      `SELECT oi.food_name as name, SUM(oi.quantity)::int as qty
+       FROM order_items oi
+       JOIN orders o ON oi.order_id = o.id
+       WHERE o.restaurant_id = $1 AND o.status != 'CANCELLED'
+       GROUP BY oi.food_name
+       ORDER BY qty DESC
+       LIMIT 10`,
+      [restaurantId]
+    );
+    const topItemsAllTime = topItemsRes.rows;
+
+    // 5. Get top items per day for the last 30 days
+    const dailyItemsRes = await pool.query(
+      `SELECT 
+        DATE(o.created_at AT TIME ZONE 'UTC')::text as date,
+        oi.food_name as name,
+        SUM(oi.quantity)::int as qty
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.restaurant_id = $1 AND o.status != 'CANCELLED' AND o.created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(o.created_at AT TIME ZONE 'UTC'), oi.food_name
+      ORDER BY date DESC, qty DESC`,
+      [restaurantId]
+    );
+
+    const itemsByDate = new Map<string, { name: string; qty: number }[]>();
+    for (const row of dailyItemsRes.rows) {
+      const date = row.date;
+      if (!itemsByDate.has(date)) {
+        itemsByDate.set(date, []);
+      }
+      const list = itemsByDate.get(date)!;
+      if (list.length < 5) {
+        list.push({ name: row.name, qty: row.qty });
+      }
+    }
+
+    const last30Days: import('./types').DailyRestaurantStats[] = dailyRes.rows.map((row) => ({
+      date: row.date,
+      totalOrders: row.totalOrders,
+      deliveredOrders: row.deliveredOrders,
+      cancelledOrders: row.cancelledOrders,
+      totalRevenue: row.totalRevenue,
+      topItems: itemsByDate.get(row.date) || [],
+    }));
+
+    let bestDay: import('./types').DailyRestaurantStats | null = null;
+    if (last30Days.length > 0) {
+      bestDay = [...last30Days].sort((a, b) => b.totalRevenue - a.totalRevenue)[0];
+    }
+
+    return {
+      restaurantId,
+      restaurantName,
+      last30Days,
+      allTimeRevenue,
+      allTimeOrders,
+      topItemsAllTime,
+      bestDay,
+    };
+  },
+
+  async getAdminAnalytics(): Promise<{
+    overview: {
+      totalRevenue: number;
+      totalOrders: number;
+      deliveredOrders: number;
+      cancelledOrders: number;
+      todayRevenue: number;
+      todayOrders: number;
+    };
+    dailyStats: {
+      date: string;
+      totalOrders: number;
+      deliveredOrders: number;
+      totalRevenue: number;
+      topItems: { name: string; qty: number }[];
+    }[];
+    restaurantBreakdown: {
+      restaurantId: string;
+      restaurantName: string;
+      totalOrders: number;
+      totalRevenue: number;
+      topItem: string;
+    }[];
+    topSellingItems: { name: string; qty: number; revenue: number }[];
+  }> {
+    // 1. Overview
+    const overviewRes = await pool.query(`
+      SELECT 
+        COUNT(*)::int as total_orders,
+        COUNT(*) FILTER (WHERE status = 'DELIVERED')::int as delivered_orders,
+        COUNT(*) FILTER (WHERE status = 'CANCELLED')::int as cancelled_orders,
+        COALESCE(SUM(total_amount) FILTER (WHERE status = 'DELIVERED'), 0)::float as total_revenue,
+        COUNT(*) FILTER (WHERE DATE(created_at AT TIME ZONE 'UTC') = CURRENT_DATE)::int as today_orders,
+        COALESCE(SUM(total_amount) FILTER (WHERE status = 'DELIVERED' AND DATE(created_at AT TIME ZONE 'UTC') = CURRENT_DATE), 0)::float as today_revenue
+      FROM orders
+    `);
+    const ov = overviewRes.rows[0];
+
+    // 2. Daily stats (last 30 days)
+    const dailyRes = await pool.query(`
+      SELECT 
+        DATE(created_at AT TIME ZONE 'UTC')::text as date,
+        COUNT(*)::int as "totalOrders",
+        COUNT(*) FILTER (WHERE status = 'DELIVERED')::int as "deliveredOrders",
+        COALESCE(SUM(total_amount) FILTER (WHERE status = 'DELIVERED'), 0)::float as "totalRevenue"
+      FROM orders
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(created_at AT TIME ZONE 'UTC')
+      ORDER BY date DESC
+    `);
+
+    // Top items per day
+    const dailyItemsRes = await pool.query(`
+      SELECT 
+        DATE(o.created_at AT TIME ZONE 'UTC')::text as date,
+        oi.food_name as name,
+        SUM(oi.quantity)::int as qty
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.status != 'CANCELLED' AND o.created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(o.created_at AT TIME ZONE 'UTC'), oi.food_name
+      ORDER BY date DESC, qty DESC
+    `);
+
+    const itemsByDate = new Map<string, { name: string; qty: number }[]>();
+    for (const row of dailyItemsRes.rows) {
+      if (!itemsByDate.has(row.date)) {
+        itemsByDate.set(row.date, []);
+      }
+      const list = itemsByDate.get(row.date)!;
+      if (list.length < 5) {
+        list.push({ name: row.name, qty: row.qty });
+      }
+    }
+
+    const dailyStats = dailyRes.rows.map((r) => ({
+      date: r.date,
+      totalOrders: r.totalOrders,
+      deliveredOrders: r.deliveredOrders,
+      totalRevenue: r.totalRevenue,
+      topItems: itemsByDate.get(r.date) || [],
+    }));
+
+    // 3. Restaurant Breakdown
+    const restBreakdownRes = await pool.query(`
+      SELECT 
+        o.restaurant_id as "restaurantId",
+        COALESCE(o.restaurant_name, r.name, 'غير محدد') as "restaurantName",
+        COUNT(o.id)::int as "totalOrders",
+        COALESCE(SUM(o.total_amount) FILTER (WHERE o.status = 'DELIVERED'), 0)::float as "totalRevenue"
+      FROM orders o
+      LEFT JOIN restaurants r ON o.restaurant_id = r.id
+      WHERE o.restaurant_id IS NOT NULL
+      GROUP BY o.restaurant_id, o.restaurant_name, r.name
+      ORDER BY "totalRevenue" DESC
+    `);
+
+    const restaurantBreakdown = await Promise.all(
+      restBreakdownRes.rows.map(async (row) => {
+        const topItemRes = await pool.query(
+          `SELECT oi.food_name FROM order_items oi
+           JOIN orders o ON oi.order_id = o.id
+           WHERE o.restaurant_id = $1 AND o.status != 'CANCELLED'
+           GROUP BY oi.food_name
+           ORDER BY SUM(oi.quantity) DESC LIMIT 1`,
+          [row.restaurantId]
+        );
+        return {
+          restaurantId: row.restaurantId,
+          restaurantName: row.restaurantName,
+          totalOrders: row.totalOrders,
+          totalRevenue: row.totalRevenue,
+          topItem: topItemRes.rows[0]?.food_name || '-',
+        };
+      })
+    );
+
+    // 4. Top selling items overall
+    const topItemsRes = await pool.query(`
+      SELECT 
+        oi.food_name as name,
+        SUM(oi.quantity)::int as qty,
+        COALESCE(SUM(oi.price * oi.quantity), 0)::float as revenue
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.status = 'DELIVERED'
+      GROUP BY oi.food_name
+      ORDER BY qty DESC
+      LIMIT 10
+    `);
+
+    return {
+      overview: {
+        totalRevenue: ov.total_revenue || 0,
+        totalOrders: ov.total_orders || 0,
+        deliveredOrders: ov.delivered_orders || 0,
+        cancelledOrders: ov.cancelled_orders || 0,
+        todayRevenue: ov.today_revenue || 0,
+        todayOrders: ov.today_orders || 0,
+      },
+      dailyStats,
+      restaurantBreakdown,
+      topSellingItems: topItemsRes.rows,
+    };
   },
 };
 

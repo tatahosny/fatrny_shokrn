@@ -33,9 +33,14 @@ import {
   MapPin,
   DollarSign,
   TrendingUp,
+  Bike,
+  BarChart3,
+  Database,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import RestaurantAnalyticsTab from '@/components/restaurant/RestaurantAnalyticsTab';
+import DeliveryAccountsTab from '@/components/restaurant/DeliveryAccountsTab';
 
 interface Stats {
   totalOrders: number;
@@ -54,7 +59,7 @@ export default function RestaurantDashboard() {
   const router = useRouter();
 
   // Navigation Tab
-  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'discounts'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'delivery' | 'analytics' | 'discounts'>('orders');
 
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -483,6 +488,30 @@ export default function RestaurantDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveTab('delivery')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                activeTab === 'delivery'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-stone-600 dark:text-stone-300 hover:text-stone-900'
+              }`}
+            >
+              <Bike className="w-4 h-4" />
+              <span>مناديب الديلفري</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                activeTab === 'analytics'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-stone-600 dark:text-stone-300 hover:text-stone-900'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>الإحصائيات والباكب</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('discounts')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
                 activeTab === 'discounts'
@@ -695,29 +724,47 @@ export default function RestaurantDashboard() {
                               </a>
                             </td>
 
-                            {/* Address & Google Maps */}
+                            {/* Address & Google Maps & Delivery Person */}
                             <td className="py-3.5 px-4 max-w-[200px]">
                               {order.address && (
                                 <p className="text-[11px] text-stone-700 dark:text-stone-300 truncate font-bold" title={order.address}>
                                   {order.address}
                                 </p>
                               )}
-                              {order.locationUrl ? (
-                                <a
-                                  href={order.locationUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-black border border-emerald-500/30 transition-colors"
-                                  title="فتح العنوان على Google Maps"
-                                >
-                                  <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                  <span>Google Maps ↗</span>
-                                </a>
-                              ) : (
-                                !order.address && (
-                                  <span className="text-[11px] text-stone-400 italic">استلام من المطعم</span>
-                                )
-                              )}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                {order.locationUrl ? (
+                                  <a
+                                    href={order.locationUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-black border border-emerald-500/30 transition-colors"
+                                    title="فتح الإحداثيات على Google Maps"
+                                  >
+                                    <MapPin className="w-3 h-3 text-emerald-500 shrink-0" />
+                                    <span>Google Maps ↗</span>
+                                  </a>
+                                ) : order.address ? (
+                                  <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-stone-800 text-orange-400 hover:bg-stone-700 text-[10px] font-bold border border-stone-700 transition-colors"
+                                    title="بحث عن العنوان على Google Maps"
+                                  >
+                                    <MapPin className="w-3 h-3 text-orange-400 shrink-0" />
+                                    <span>موقع الخريطة ↗</span>
+                                  </a>
+                                ) : (
+                                  <span className="text-[10px] text-stone-400 italic">استلام من المطعم</span>
+                                )}
+
+                                {order.deliveryPersonName && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/30 text-[10px] font-bold">
+                                    <Bike className="w-3 h-3 text-purple-400 shrink-0" />
+                                    <span>{order.deliveryPersonName}</span>
+                                  </span>
+                                )}
+                              </div>
                             </td>
 
                             {/* Items & Notes Summary */}
@@ -1223,6 +1270,25 @@ export default function RestaurantDashboard() {
               )}
             </div>
           </div>
+        )}
+
+        {/* ============================================================= */}
+        {/* TAB 4: DELIVERY AGENTS (الديلفري)                               */}
+        {/* ============================================================= */}
+        {activeTab === 'delivery' && (
+          <DeliveryAccountsTab
+            restaurantId={restaurant?.id}
+            onNotification={showNotification}
+          />
+        )}
+
+        {/* ============================================================= */}
+        {/* TAB 5: DAILY ANALYTICS & BACKUP                               */}
+        {/* ============================================================= */}
+        {activeTab === 'analytics' && (
+          <RestaurantAnalyticsTab
+            restaurantId={restaurant?.id}
+          />
         )}
 
       </div>

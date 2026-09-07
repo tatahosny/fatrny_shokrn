@@ -143,20 +143,36 @@ function OrderTableRow({ order, onStatusChange, restaurantList }: {
                 href={order.locationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-black bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 transition-colors"
                 title="فتح موقع العميل في خرائط Google مباشرة"
               >
-                <MapPin className="w-3.5 h-3.5" />
-                <span>فتح في Google Maps ↗</span>
+                <MapPin className="w-3 h-3" />
+                <span>Google Maps ↗</span>
               </a>
-            ) : null}
-            {order.address ? (
+            ) : order.address ? (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:text-orange-500 border border-stone-200 dark:border-stone-700 transition-colors"
+                title="بحث عن العنوان على خرائط Google"
+              >
+                <MapPin className="w-3 h-3" />
+                <span>الخريطة ↗</span>
+              </a>
+            ) : (
+              <span className="text-[11px] text-stone-400">لم يحدد</span>
+            )}
+            {order.address && (
               <p className="text-[11px] text-stone-600 dark:text-stone-300 font-medium truncate" title={order.address}>
                 {order.address}
               </p>
-            ) : !order.locationUrl ? (
-              <span className="text-[11px] text-stone-400">لم يحدد</span>
-            ) : null}
+            )}
+            {order.deliveryPersonName && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 text-[10px] font-bold">
+                <span>🛵 {order.deliveryPersonName}</span>
+              </span>
+            )}
           </div>
         </td>
 

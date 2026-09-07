@@ -1,4 +1,4 @@
-export type Role = 'USER' | 'ADMIN' | 'RESTAURANT' | 'CUSTOMER' | 'STUDENT';
+export type Role = 'USER' | 'ADMIN' | 'RESTAURANT' | 'CUSTOMER' | 'STUDENT' | 'DELIVERY';
 
 export type OrderStatus = 'PENDING' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
 
@@ -90,10 +90,41 @@ export interface Order {
   locationUrl?: string;
   createdAt: string;
   deliveredAt?: string | null;
+  deliveryPersonId?: string;
+  deliveryPersonName?: string;
   items: OrderItem[];
   totalItemsCount?: number;
   totalAmount?: number;
   discountAmount?: number;
+}
+
+export interface DeliveryAccount {
+  id: string;
+  name: string;
+  phone: string;
+  restaurantId: string;
+  restaurantName?: string;
+  createdAt: string;
+  activeOrdersCount?: number;
+}
+
+export interface DailyRestaurantStats {
+  date: string;           // 'YYYY-MM-DD'
+  totalOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  totalRevenue: number;
+  topItems: { name: string; qty: number }[];
+}
+
+export interface RestaurantAnalytics {
+  restaurantId: string;
+  restaurantName: string;
+  last30Days: DailyRestaurantStats[];
+  allTimeRevenue: number;
+  allTimeOrders: number;
+  topItemsAllTime: { name: string; qty: number }[];
+  bestDay: DailyRestaurantStats | null;
 }
 
 export interface ActivityLog {

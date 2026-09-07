@@ -37,6 +37,7 @@ export default function CartPage() {
   const [notes, setNotes] = useState('');
   const [address, setAddress] = useState('');
   const [locationUrl, setLocationUrl] = useState('');
+  const [locationMode, setLocationMode] = useState<'auto' | 'manual'>('auto');
   const [isLocating, setIsLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -54,7 +55,7 @@ export default function CartPage() {
     });
   };
 
-  const handleGetLocation = () => {
+  const handleGetLocation = async () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setErrorMsg('تحديد الموقع عبر المتصفح غير مدعوم في جهازك');
       return;
@@ -64,22 +65,41 @@ export default function CartPage() {
     setErrorMsg('');
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
         setLocationUrl(mapsLink);
-        if (!address) {
-          setAddress(`موقع GPS دقيق: برج العرب الجديدة (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+
+        // Reverse Geocoding to get human-readable Arabic address
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ar`,
+            { headers: { 'User-Agent': 'Fatrny-Delivery-App' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const displayName = data.display_name || '';
+            if (displayName) {
+              setAddress(displayName);
+            } else {
+              setAddress(`موقع دقيق: (${lat.toFixed(5)}, ${lng.toFixed(5)})`);
+            }
+          } else {
+            setAddress(`موقع دقيق: (${lat.toFixed(5)}, ${lng.toFixed(5)})`);
+          }
+        } catch {
+          setAddress(`موقع دقيق: (${lat.toFixed(5)}, ${lng.toFixed(5)})`);
         }
+
         setIsLocating(false);
       },
       (err) => {
         setIsLocating(false);
         if (err.code === 1) {
-          setErrorMsg('يرجى السماح بصلاحية الموقع من إعدادات المتصفح أو كتابة العنوان يدوياً');
+          setErrorMsg('يرجى السماح بصلاحية الموقع من إعدادات المتصفح أو اختيار كتابة العنوان يدوياً');
         } else {
-          setErrorMsg('تعذر الوصول للموقع تلقائياً، يرجى كتابة العنوان وتفاصيل مكانك يدوياً');
+          setErrorMsg('تعذر الوصول للموقع تلقائياً، يمكنك كتابة العنوان وتفاصيل مكانك يدوياً');
         }
       },
       { enableHighAccuracy: true, timeout: 12000 }
@@ -329,60 +349,103 @@ export default function CartPage() {
             </div>
           )}
 
-          {/* Location & Delivery Details (تحديد اللوكيشن وربطه بخرائط جوجل) */}
-          <div className="space-y-3 p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200/80 dark:border-orange-900/40">
+          {/* Location & Delivery Details (تحديد اللوكيشن وربطه بخرائط جوجل والتنقل بين يدوي وتلقائي) */}
+          <div className="space-y-4 p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200/80 dark:border-orange-900/40">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-black text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-orange-500 shrink-0" />
-                <span>مكان استلام الطلب واللوكيشن:</span>
+                <span>عنوان ومكان استلام الطلب:</span>
               </label>
 
-              <button
-                type="button"
-                onClick={handleGetLocation}
-                disabled={isLocating}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-orange-500 hover:bg-orange-600 text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
-              >
-                {isLocating ? (
-                  <>
-                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    <span>جاري تحديد موقعك...</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>تحديد موقعي بدقة (GPS)</span>
-                  </>
-                )}
-              </button>
+              {/* Mode Toggle (تلقائي / يدوي) */}
+              <div className="flex items-center bg-white dark:bg-stone-800 p-1 rounded-xl border border-stone-200 dark:border-stone-700 text-[11px] font-black">
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('auto')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    locationMode === 'auto'
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
+                  }`}
+                >
+                  📍 تلقائي (GPS)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('manual')}
+                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                    locationMode === 'manual'
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
+                  }`}
+                >
+                  ✏️ كتابة يدوية
+                </button>
+              </div>
             </div>
 
-            <p className="text-[11px] text-stone-500 dark:text-stone-400">
-              اضغط على زر تحديد الموقع التلقائي لربط مكانك بخرائط جوجل فوراً، أو اكتب تفاصيل مكانك بدقة:
-            </p>
-
-            <input
-              type="text"
-              placeholder="مثال: مبنى كلية تكنولوجيا الصناعة، الدور الثاني، قاعة 204..."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full text-xs px-3 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
-            />
-
-            {locationUrl && (
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-orange-200 dark:border-orange-800/60 text-xs">
-                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold truncate">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span className="truncate">تم التقاط إحداثيات موقعك بنجاح!</span>
+            {locationMode === 'auto' ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2 bg-white dark:bg-stone-900 p-3 rounded-xl border border-stone-200 dark:border-stone-800">
+                  <div className="text-xs text-stone-600 dark:text-stone-300">
+                    {address ? (
+                      <div className="space-y-1">
+                        <span className="font-bold text-stone-900 dark:text-white block">العنوان المكتشف:</span>
+                        <span className="text-[11px] text-stone-600 dark:text-stone-300 line-clamp-2">{address}</span>
+                      </div>
+                    ) : (
+                      <span>اضغط زر التحديد لجلب مكانك وعنوانك بدقة عبر الأقمار الصناعية</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGetLocation}
+                    disabled={isLocating}
+                    className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-orange-500 hover:bg-orange-600 text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {isLocating ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span>جاري التحديد...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{address ? 'تحديث الموقع' : 'تحديد موقعي الآن'}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-                <a
-                  href={locationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-black text-orange-600 hover:underline flex items-center gap-1 shrink-0"
-                >
-                  <span>معاينة في خرائط Google ↗</span>
-                </a>
+
+                {locationUrl && (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs">
+                    <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-bold truncate">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span className="truncate">تم ربط مكانك بخرائط Google بدقة!</span>
+                    </div>
+                    <a
+                      href={locationUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-black text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 shrink-0 bg-white dark:bg-stone-900 px-2.5 py-1 rounded-lg border border-orange-200 dark:border-orange-800/60 shadow-xs"
+                    >
+                      <span>عرض في Google Maps ↗</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="مثال: مبنى كلية تكنولوجيا الصناعة، الدور الثاني، قاعة 204..."
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+                />
+                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                  اكتب اسم المبنى والقاعة أو المعلم المميز لتسليم الوجبة بسهولة
+                </p>
               </div>
             )}
           </div>
