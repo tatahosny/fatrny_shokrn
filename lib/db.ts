@@ -928,6 +928,19 @@ export const db = {
       }
 
       const createdOrderItems: OrderItem[] = [];
+      const preparedDbItems: {
+        id: string;
+        foodItemId: string;
+        foodName: string;
+        foodImage: string;
+        categoryName: string;
+        quantity: number;
+        price: number;
+        unitPrice: number;
+        discountPercent: number;
+        notes: string;
+      }[] = [];
+
       let totalAmount = 0;
       let totalDiscount = 0;
 
@@ -947,23 +960,18 @@ export const db = {
           totalDiscount += itemDiscountAmount;
           const itemNote = item.notes?.trim() || '';
 
-          await client.query(
-            `INSERT INTO order_items (id, order_id, food_item_id, food_name, food_image, category_name, quantity, price, unit_price, discount_percent, notes)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-            [
-              itemId,
-              orderId,
-              food.id,
-              food.name,
-              food.image || '',
-              food.category_name || '',
-              quantity,
-              discountedPrice,
-              unitPrice,
-              itemDiscountPercent,
-              itemNote,
-            ]
-          );
+          preparedDbItems.push({
+            id: itemId,
+            foodItemId: food.id,
+            foodName: food.name,
+            foodImage: food.image || '',
+            categoryName: food.category_name || '',
+            quantity,
+            price: discountedPrice,
+            unitPrice,
+            discountPercent: itemDiscountPercent,
+            notes: itemNote,
+          });
 
           createdOrderItems.push({
             id: itemId,
@@ -981,12 +989,37 @@ export const db = {
         }
       }
 
-      // إنشاء الطلب في جدول orders مع ربط المطعم والمبالغ المحسوبة
+      if (preparedDbItems.length === 0) {
+        throw new Error('لم يتم العثور على وجبات صالحة في السلة');
+      }
+
+      // 1. إنشاء الطلب أولاً في جدول orders (الأب) حتى يتوفر orderId للمفتاح الخارجي
       await client.query(
         `INSERT INTO orders (id, order_number, user_id, user_name, user_phone, restaurant_id, restaurant_name, status, notes, total_amount, discount_amount, user_role, created_at, delivered_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING', $8, $9, $10, $11, $12, NULL)`,
         [orderId, orderNumber, params.userId, params.userName, params.userPhone, restaurantId || null, restaurantName || null, finalOrderNotes, totalAmount, totalDiscount, userRole, createdAt]
       );
+
+      // 2. إدراج عناصر الطلب في جدول order_items (الابن) بعد إتمام وجود الطلب في جدول orders
+      for (const item of preparedDbItems) {
+        await client.query(
+          `INSERT INTO order_items (id, order_id, food_item_id, food_name, food_image, category_name, quantity, price, unit_price, discount_percent, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          [
+            item.id,
+            orderId,
+            item.foodItemId,
+            item.foodName,
+            item.foodImage,
+            item.categoryName,
+            item.quantity,
+            item.price,
+            item.unitPrice,
+            item.discountPercent,
+            item.notes,
+          ]
+        );
+      }
 
       const totalItemsCount = createdOrderItems.reduce((sum, it) => sum + it.quantity, 0);
 
