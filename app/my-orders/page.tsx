@@ -108,11 +108,34 @@ function getStepIndex(status: OrderStatus): number {
   }
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, onOrderCancelled }: { order: Order; onOrderCancelled?: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const { addToCart } = useCart();
   const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.PENDING;
   const currentStep = getStepIndex(order.status);
+
+  const handleCancelOrder = async () => {
+    if (!confirm(`هل أنت متأكد من رغبتك في إلغاء طلبك رقم #${order.orderNumber}؟`)) {
+      return;
+    }
+    try {
+      setIsCancelling(true);
+      const res = await fetch(`/api/orders/${order.id}/cancel`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (onOrderCancelled) onOrderCancelled();
+      } else {
+        alert(data.error || 'تعذر إلغاء الطلب');
+      }
+    } catch {
+      alert('حدث خطأ أثناء محاولة إلغاء الطلب');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   const handleReorder = async () => {
     const foods = await Promise.all(
@@ -161,6 +184,18 @@ function OrderCard({ order }: { order: Order }) {
                 <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
                 {cfg.label}
               </span>
+
+              {order.status === 'PENDING' && (
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={isCancelling}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/50 hover:bg-red-200 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800 transition-colors disabled:opacity-50"
+                  title="إلغاء الطلب"
+                >
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>{isCancelling ? 'جاري الإلغاء...' : 'إلغاء الطلب'}</span>
+                </button>
+              )}
             </div>
 
             <div className="text-xs text-stone-500 flex items-center gap-1.5">
@@ -475,7 +510,7 @@ export default function MyOrdersPage() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={order.id} order={order} onOrderCancelled={fetchOrders} />
           ))}
         </div>
       )}

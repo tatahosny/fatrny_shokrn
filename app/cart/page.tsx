@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { Trash2, Plus, Minus, CheckCircle2, ShoppingBag, ArrowRight, User, Phone, MapPin, Sparkles, GraduationCap, Lock, LogIn } from 'lucide-react';
+import { Trash2, Plus, Minus, CheckCircle2, ShoppingBag, ArrowRight, User, Phone, MapPin, Sparkles, GraduationCap, Lock, LogIn, X, AlertCircle, Navigation } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const QUICK_NOTES = [
@@ -40,6 +40,8 @@ export default function CartPage() {
   const [locationMode, setLocationMode] = useState<'auto' | 'manual'>('auto');
   const [isLocating, setIsLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [modalError, setModalError] = useState('');
 
   const toggleNote = (preset: string) => {
     setNotes((prev) => {
@@ -57,12 +59,12 @@ export default function CartPage() {
 
   const handleGetLocation = async () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
-      setErrorMsg('تحديد الموقع عبر المتصفح غير مدعوم في جهازك');
+      setModalError('تحديد الموقع عبر المتصفح غير مدعوم في جهازك');
       return;
     }
 
     setIsLocating(true);
-    setErrorMsg('');
+    setModalError('');
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -97,25 +99,36 @@ export default function CartPage() {
       (err) => {
         setIsLocating(false);
         if (err.code === 1) {
-          setErrorMsg('يرجى السماح بصلاحية الموقع من إعدادات المتصفح أو اختيار كتابة العنوان يدوياً');
+          setModalError('يرجى السماح بصلاحية الموقع من إعدادات المتصفح أو اختيار كتابة العنوان يدوياً');
         } else {
-          setErrorMsg('تعذر الوصول للموقع تلقائياً، يمكنك كتابة العنوان وتفاصيل مكانك يدوياً');
+          setModalError('تعذر الوصول للموقع تلقائياً، يمكنك كتابة العنوان وتفاصيل مكانك يدوياً');
         }
       },
       { enableHighAccuracy: true, timeout: 12000 }
     );
   };
 
-  const handleCheckout = async () => {
+  const handleOpenLocationModal = () => {
     setErrorMsg('');
     if (!user) {
       setErrorMsg('يجب تسجيل الدخول بحسابك أولاً لتأكيد طلبك');
       router.push('/login');
       return;
     }
+    setModalError('');
+    setIsLocationModalOpen(true);
+  };
+
+  const handleConfirmOrderWithLocation = async () => {
+    setModalError('');
+    if (!address.trim() && !locationUrl) {
+      setModalError('يرجى تحديد موقعك عبر GPS أو كتابة تفاصيل المكان والعنوان لتأكيد الطلب');
+      return;
+    }
 
     const order = await submitOrder(notes, undefined, undefined, address, locationUrl);
     if (order) {
+      setIsLocationModalOpen(false);
       router.push('/my-orders');
     }
   };
@@ -539,27 +552,217 @@ export default function CartPage() {
             </Link>
           ) : (
             <button
-              onClick={handleCheckout}
+              onClick={handleOpenLocationModal}
               disabled={isSubmitting}
               className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-base shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
             >
-              {isSubmitting ? (
-                <span>جاري تسجيل وتأكيد الطلب...</span>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span>تأكيد الطلب الآن</span>
-                </>
-              )}
+              <CheckCircle2 className="w-5 h-5" />
+              <span>تأكيد الطلب وتحديد موقع الاستلام</span>
             </button>
           )}
 
           <p className="text-[11px] text-center text-stone-400 leading-tight">
-            بمجرد التأكيد سيتم إرسال الطلب فوراً لمشرفي إدارة التقديمات للبدء في تجميع الوجبات
+            سيتم طلب تأكيد مكان استلام الطلب داخل الجامعة لضمان دقة وسرعة التوصيل
           </p>
         </div>
 
       </div>
+
+      {/* ============================================================= */}
+      {/* LOCATION & ADDRESS CONFIRMATION MODAL                         */}
+      {/* ============================================================= */}
+      {isLocationModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="relative max-w-lg w-full bg-white dark:bg-stone-900 rounded-3xl p-6 shadow-2xl border border-stone-200 dark:border-stone-800 my-8 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-stone-900 dark:text-white">
+                    تأكيد مكان استلام الطلب 📍
+                  </h3>
+                  <p className="text-[11px] text-stone-500">
+                    حدد مكان تواجدك داخل جامعة برج العرب لتسليم الوجبة
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsLocationModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-white flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Error in modal if any */}
+            {modalError && (
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{modalError}</span>
+              </div>
+            )}
+
+            {/* Toggle Mode */}
+            <div className="flex items-center bg-stone-100 dark:bg-stone-800 p-1 rounded-2xl border border-stone-200 dark:border-stone-700 text-xs font-black">
+              <button
+                type="button"
+                onClick={() => setLocationMode('auto')}
+                className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  locationMode === 'auto'
+                    ? 'bg-orange-500 text-white shadow-sm'
+                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>تحديد تلقائي دقيق (GPS)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocationMode('manual')}
+                className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+                  locationMode === 'manual'
+                    ? 'bg-orange-500 text-white shadow-sm'
+                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900'
+                }`}
+              >
+                <span>✏️ كتابة العنوان يدوياً</span>
+              </button>
+            </div>
+
+            {/* Mode 1: Auto GPS */}
+            {locationMode === 'auto' ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-stone-700 dark:text-stone-300">
+                      التقاط إحداثيات المكان وترجمة العنوان تلقائياً:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleGetLocation}
+                      disabled={isLocating}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs shadow-sm transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                    >
+                      {isLocating ? (
+                        <>
+                          <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                          <span>جاري التحديد...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Navigation className="w-3.5 h-3.5" />
+                          <span>{address ? 'تحديث موقعي' : 'التقاط موقعي الآن'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {address ? (
+                    <div className="p-3 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs space-y-1">
+                      <span className="font-black text-stone-900 dark:text-white block">العنوان المكتشف:</span>
+                      <p className="text-stone-600 dark:text-stone-300 leading-relaxed font-bold">{address}</p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-stone-500">
+                      اضغط على &ldquo;التقاط موقعي الآن&rdquo; لجلب مكانك بدقة عالية من القمر الصناعي وربطه بخرائط جوجل
+                    </p>
+                  )}
+
+                  {locationUrl && (
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                      <span className="flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>تم التقاط الموقع بنجاح ✓</span>
+                      </span>
+                      <a
+                        href={locationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-black text-orange-600 hover:underline"
+                      >
+                        معاينة على الخريطة ↗
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Mode 2: Manual Text */
+              <div className="space-y-2">
+                <label className="block text-xs font-black text-stone-700 dark:text-stone-300">
+                  تفاصيل العنوان والمبنى:
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="مثال: مبنى كلية تكنولوجيا الصناعة والطاقة، الدور الثاني، قاعة 204..."
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full text-xs p-3.5 rounded-2xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+                />
+                <p className="text-[11px] text-stone-400">
+                  يرجى كتابة اسم المبنى والقاعة بدقة لتسهيل وصول المندوب
+                </p>
+              </div>
+            )}
+
+            {/* Additional Order Notes */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300">
+                ملاحظات إضافية على الطلب أو التوصيل (اختياري):
+              </label>
+              <input
+                type="text"
+                placeholder="مثال: اتصل بيا أول ما توصل عند البوابة..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+              />
+            </div>
+
+            {/* Total Summary In Modal */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 text-xs">
+              <span className="text-stone-500 font-bold">المبلغ المطلوب عند الاستلام:</span>
+              <span className="font-black text-base text-orange-600 dark:text-orange-400">
+                {totalPrice} ج.م
+              </span>
+            </div>
+
+            {/* Confirm & Cancel Buttons */}
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsLocationModalOpen(false)}
+                className="flex-1 py-3 rounded-2xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-bold text-xs transition-colors"
+              >
+                إلغاء
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmOrderWithLocation}
+                disabled={isSubmitting}
+                className="flex-[2] py-3 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-black text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all active:scale-98 disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span>جاري تأكيد الطلب...</span>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>تأكيد الطلب والموقع الآن 🚀</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
