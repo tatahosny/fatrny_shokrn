@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { createSessionToken, SESSION_COOKIE_NAME } from '@/lib/auth';
 
+// Handler for user & restaurant login
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

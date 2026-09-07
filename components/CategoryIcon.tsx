@@ -16,6 +16,9 @@ import {
   Drumstick,
   Soup,
   PlusCircle,
+  Scale,
+  Salad,
+  Fingerprint,
   LucideProps,
 } from 'lucide-react';
 
@@ -30,6 +33,12 @@ export default function CategoryIcon({ slug, name, iconName, className = 'w-5 h-
 
   if (identifier.includes('box') || identifier.includes('بوكس')) {
     return <Package className={className} {...props} />;
+  }
+  if (identifier.includes('kilo') || identifier.includes('كيلو') || identifier.includes('scale') || identifier.includes('وزن')) {
+    return <Scale className={className} {...props} />;
+  }
+  if (identifier.includes('basmat') || identifier.includes('بصمات') || identifier.includes('fingerprint') || identifier.includes('سلط') || identifier.includes('مخلل')) {
+    return <Salad className={className} {...props} />;
   }
   if (identifier.includes('helw') || identifier.includes('حلو') || identifier.includes('cake') || identifier.includes('sweet')) {
     return <Cake className={className} {...props} />;

@@ -144,35 +144,45 @@ export default function FoodCard({ food }: FoodCardProps) {
             </p>
           </div>
 
-          {/* Bread Type Selector (إذا كان للصنف اختيارات عيش مثل فينو / ملفوف سوري) */}
+          {/* Variants Selector (نوع العيش / الحجم / الوزن) */}
           {food.variants && food.variants.length > 1 && (
             <div className="pt-2 border-t border-dashed border-stone-200 dark:border-stone-700/60 space-y-1.5">
               <div className="flex items-center justify-between text-[11px] font-bold text-stone-500 dark:text-stone-400">
-                <span>نوع العيش:</span>
+                <span>
+                  {food.categoryName?.includes('كيلو') || food.name.includes('كيلو')
+                    ? 'الوزن / الكمية:'
+                    : 'نوع العيش / الحجم:'}
+                </span>
                 <span className="text-orange-600 dark:text-orange-400 font-black">
                   {selectedVariant?.name} ({selectedVariant?.price} ج.م)
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className={`grid gap-1.5 ${food.variants.length > 2 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
                 {food.variants.map((v) => {
                   const isSelected = selectedVariant?.name === v.name;
-                  const isMalfoof = v.name.includes('ملفوف') || v.name.includes('سوري');
+                  const getVariantIcon = (name: string) => {
+                    if (name.includes('بلدي')) return '🫓';
+                    if (name.includes('فينو')) return '🥖';
+                    if (name.includes('ملفوف') || name.includes('سوري')) return '🌯';
+                    if (name.includes('كيلو') || name.includes('ربع') || name.includes('نص') || name.includes('ثمن')) return '⚖️';
+                    return '✨';
+                  };
                   return (
                     <button
                       key={v.name}
                       type="button"
                       onClick={() => setSelectedVariant(v)}
-                      className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold border transition-all ${
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-orange-500 shadow-sm shadow-orange-500/20'
                           : 'bg-stone-50 dark:bg-stone-900/60 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-orange-400'
                       }`}
                     >
-                      <span className="flex items-center gap-1">
-                        <span>{isMalfoof ? '🌯' : '🥖'}</span>
+                      <span className="flex items-center gap-1 min-w-0">
+                        <span className="shrink-0">{getVariantIcon(v.name)}</span>
                         <span className="truncate">{v.name}</span>
                       </span>
-                      <span className={`text-[11px] font-extrabold ${isSelected ? 'text-white' : 'text-orange-600 dark:text-orange-400'}`}>
+                      <span className={`text-[11px] font-extrabold shrink-0 mr-1 ${isSelected ? 'text-white' : 'text-orange-600 dark:text-orange-400'}`}>
                         {v.price}ج
                       </span>
                     </button>
@@ -182,11 +192,11 @@ export default function FoodCard({ food }: FoodCardProps) {
             </div>
           )}
 
-          {/* Single variant badge (إذا كان الصنف عيش واحد فقط محدد) */}
+          {/* Single variant badge */}
           {food.variants && food.variants.length === 1 && (
             <div className="pt-1">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 text-[11px] font-bold border border-orange-200 dark:border-orange-900/40">
-                <span>{food.variants[0].name.includes('ملفوف') || food.variants[0].name.includes('سوري') ? '🌯 عيش ملفوف (سوري)' : '🥖 عيش فينو'}</span>
+                <span>{food.variants[0].name}</span>
               </span>
             </div>
           )}
