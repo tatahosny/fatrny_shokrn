@@ -35,6 +35,9 @@ export default function CartPage() {
   const router = useRouter();
 
   const [notes, setNotes] = useState('');
+  const [address, setAddress] = useState('');
+  const [locationUrl, setLocationUrl] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const toggleNote = (preset: string) => {
@@ -51,6 +54,38 @@ export default function CartPage() {
     });
   };
 
+  const handleGetLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setErrorMsg('تحديد الموقع عبر المتصفح غير مدعوم في جهازك');
+      return;
+    }
+
+    setIsLocating(true);
+    setErrorMsg('');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+        setLocationUrl(mapsLink);
+        if (!address) {
+          setAddress(`موقع GPS دقيق: برج العرب الجديدة (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+        }
+        setIsLocating(false);
+      },
+      (err) => {
+        setIsLocating(false);
+        if (err.code === 1) {
+          setErrorMsg('يرجى السماح بصلاحية الموقع من إعدادات المتصفح أو كتابة العنوان يدوياً');
+        } else {
+          setErrorMsg('تعذر الوصول للموقع تلقائياً، يرجى كتابة العنوان وتفاصيل مكانك يدوياً');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 12000 }
+    );
+  };
+
   const handleCheckout = async () => {
     setErrorMsg('');
     if (!user) {
@@ -59,7 +94,7 @@ export default function CartPage() {
       return;
     }
 
-    const order = await submitOrder(notes);
+    const order = await submitOrder(notes, undefined, undefined, address, locationUrl);
     if (order) {
       router.push('/my-orders');
     }
@@ -293,6 +328,64 @@ export default function CartPage() {
               </span>
             </div>
           )}
+
+          {/* Location & Delivery Details (تحديد اللوكيشن وربطه بخرائط جوجل) */}
+          <div className="space-y-3 p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200/80 dark:border-orange-900/40">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <label className="text-xs font-black text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-orange-500 shrink-0" />
+                <span>مكان استلام الطلب واللوكيشن:</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                disabled={isLocating}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-orange-500 hover:bg-orange-600 text-white shadow-xs transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isLocating ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>جاري تحديد موقعك...</span>
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>تحديد موقعي بدقة (GPS)</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <p className="text-[11px] text-stone-500 dark:text-stone-400">
+              اضغط على زر تحديد الموقع التلقائي لربط مكانك بخرائط جوجل فوراً، أو اكتب تفاصيل مكانك بدقة:
+            </p>
+
+            <input
+              type="text"
+              placeholder="مثال: مبنى كلية تكنولوجيا الصناعة، الدور الثاني، قاعة 204..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full text-xs px-3 py-2.5 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+
+            {locationUrl && (
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-stone-900 border border-orange-200 dark:border-orange-800/60 text-xs">
+                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold truncate">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span className="truncate">تم التقاط إحداثيات موقعك بنجاح!</span>
+                </div>
+                <a
+                  href={locationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-black text-orange-600 hover:underline flex items-center gap-1 shrink-0"
+                >
+                  <span>معاينة في خرائط Google ↗</span>
+                </a>
+              </div>
+            )}
+          </div>
 
           {/* Location & Food Customization Notes */}
           <div className="space-y-3 p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/80 dark:border-stone-700/80">

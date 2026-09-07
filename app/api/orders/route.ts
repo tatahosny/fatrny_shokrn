@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { items, notes, guestName, guestPhone, restaurantId, restaurantName } = body;
+    const { items, notes, guestName, guestPhone, restaurantId, restaurantName, address, locationUrl } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
       restaurantId: typeof restaurantId === 'string' ? restaurantId : undefined,
       restaurantName: typeof restaurantName === 'string' ? restaurantName : undefined,
       notes: notes || '',
+      address: typeof address === 'string' ? address : undefined,
+      locationUrl: typeof locationUrl === 'string' ? locationUrl : undefined,
       items: sanitizedItems,
     });
 

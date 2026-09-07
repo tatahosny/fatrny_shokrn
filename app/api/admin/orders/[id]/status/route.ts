@@ -12,7 +12,7 @@ export async function PATCH(
     const body = await req.json();
     const { status } = body as { status: OrderStatus };
 
-    if (!['PENDING', 'DELIVERED', 'CANCELLED'].includes(status)) {
+    if (!['PENDING', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].includes(status)) {
       return NextResponse.json({ error: 'حالة الطلب غير صالحة' }, { status: 400 });
     }
 

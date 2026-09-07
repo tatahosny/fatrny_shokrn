@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Order } from '@/lib/types';
+import { Order, OrderStatus } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import {
@@ -18,22 +18,57 @@ import {
   GraduationCap,
   RefreshCw,
   ShoppingBag,
+  MapPin,
+  ExternalLink,
+  UtensilsCrossed,
+  Bike,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<
+  OrderStatus,
+  {
+    label: string;
+    sublabel: string;
+    Icon: React.ComponentType<{ className?: string }>;
+    color: string;
+    bg: string;
+    border: string;
+    dot: string;
+  }
+> = {
   PENDING: {
-    label: 'قيد الانتظار والتحضير',
+    label: 'قيد الانتظار',
+    sublabel: 'تم استلام طلبك وجاري تحويله للمطعم',
     Icon: Clock,
     color: 'text-amber-700 dark:text-amber-300',
     bg: 'bg-amber-50 dark:bg-amber-950/40',
     border: 'border-amber-200 dark:border-amber-800/50',
     dot: 'bg-amber-500 animate-pulse',
   },
+  PREPARING: {
+    label: 'جاري التجهيز بالمطبخ 🍳',
+    sublabel: 'المطعم يقوم بتحضير وجباتك طازجة الآن',
+    Icon: UtensilsCrossed,
+    color: 'text-blue-700 dark:text-blue-300',
+    bg: 'bg-blue-50 dark:bg-blue-950/40',
+    border: 'border-blue-200 dark:border-blue-800/50',
+    dot: 'bg-blue-500 animate-pulse',
+  },
+  OUT_FOR_DELIVERY: {
+    label: 'في الطريق إليك 🛵',
+    sublabel: 'الطلب مع المندوب وفي الطريق لموقعك',
+    Icon: Bike,
+    color: 'text-purple-700 dark:text-purple-300',
+    bg: 'bg-purple-50 dark:bg-purple-950/40',
+    border: 'border-purple-200 dark:border-purple-800/50',
+    dot: 'bg-purple-500 animate-pulse',
+  },
   DELIVERED: {
-    label: 'تم التسليم بالهنا',
+    label: 'تم التسليم بالهنا ✅',
+    sublabel: 'ألف هنا وشفا، شكراً لاختيارك فطرني شكراً',
     Icon: CheckCircle2,
     color: 'text-emerald-700 dark:text-emerald-300',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
@@ -41,7 +76,8 @@ const STATUS_CONFIG = {
     dot: 'bg-emerald-500',
   },
   CANCELLED: {
-    label: 'تم الإلغاء',
+    label: 'تم الإلغاء ❌',
+    sublabel: 'تم إلغاء هذا الطلب',
     Icon: XCircle,
     color: 'text-rose-700 dark:text-rose-300',
     bg: 'bg-rose-50 dark:bg-rose-950/40',
@@ -50,10 +86,33 @@ const STATUS_CONFIG = {
   },
 };
 
+const TRACKING_STEPS: { key: OrderStatus; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: 'PENDING', label: 'تم الاستلام', icon: Clock },
+  { key: 'PREPARING', label: 'قيد التجهيز', icon: UtensilsCrossed },
+  { key: 'OUT_FOR_DELIVERY', label: 'في الطريق', icon: Bike },
+  { key: 'DELIVERED', label: 'تم التسليم', icon: CheckCircle2 },
+];
+
+function getStepIndex(status: OrderStatus): number {
+  switch (status) {
+    case 'PENDING':
+      return 0;
+    case 'PREPARING':
+      return 1;
+    case 'OUT_FOR_DELIVERY':
+      return 2;
+    case 'DELIVERED':
+      return 3;
+    default:
+      return -1;
+  }
+}
+
 function OrderCard({ order }: { order: Order }) {
   const [expanded, setExpanded] = useState(false);
   const { addToCart } = useCart();
   const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.PENDING;
+  const currentStep = getStepIndex(order.status);
 
   const handleReorder = async () => {
     const foods = await Promise.all(
@@ -77,10 +136,10 @@ function OrderCard({ order }: { order: Order }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-3xl border ${cfg.border} ${cfg.bg} overflow-hidden shadow-xs`}
+      className={`rounded-3xl border ${cfg.border} ${cfg.bg} overflow-hidden shadow-xs space-y-3`}
     >
       {/* Order Header */}
-      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${cfg.bg} border ${cfg.border} shrink-0 mt-0.5`}>
             <cfg.Icon className={`w-5 h-5 ${cfg.color}`} />
@@ -146,6 +205,90 @@ function OrderCard({ order }: { order: Order }) {
           </button>
         </div>
       </div>
+
+      {/* Visual Live Order Tracker Stepper (For non-cancelled orders) */}
+      {order.status !== 'CANCELLED' && (
+        <div className="px-4 sm:px-5 py-3">
+          <div className="bg-white/70 dark:bg-stone-900/70 rounded-2xl p-3.5 border border-stone-200/80 dark:border-stone-800">
+            <div className="flex items-center justify-between mb-3 text-xs">
+              <span className="font-black text-stone-700 dark:text-stone-300">متابعة مسار طلبك:</span>
+              <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">{cfg.sublabel}</span>
+            </div>
+
+            {/* Stepper Bar */}
+            <div className="relative flex items-center justify-between">
+              {TRACKING_STEPS.map((step, idx) => {
+                const isPassed = currentStep >= idx;
+                const isCurrent = currentStep === idx;
+                const StepIcon = step.icon;
+
+                return (
+                  <div key={step.key} className="flex-1 flex flex-col items-center relative z-10">
+                    {/* Connector line behind */}
+                    {idx < TRACKING_STEPS.length - 1 && (
+                      <div
+                        className={`absolute top-4 right-[50%] left-[-50%] h-1 -z-1 transition-all ${
+                          currentStep > idx ? 'bg-orange-500' : 'bg-stone-200 dark:bg-stone-800'
+                        }`}
+                      />
+                    )}
+
+                    {/* Step Circle */}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                        isCurrent
+                          ? 'bg-orange-500 text-white ring-4 ring-orange-500/20 shadow-md shadow-orange-500/30'
+                          : isPassed
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-stone-200 dark:bg-stone-800 text-stone-400'
+                      }`}
+                    >
+                      <StepIcon className="w-4 h-4" />
+                    </div>
+
+                    <span
+                      className={`text-[10px] sm:text-[11px] mt-1.5 font-black text-center ${
+                        isCurrent
+                          ? 'text-orange-600 dark:text-orange-400 font-extrabold'
+                          : isPassed
+                          ? 'text-stone-800 dark:text-stone-200'
+                          : 'text-stone-400 dark:text-stone-600'
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Address & Google Maps Location Link */}
+      {(order.address || order.locationUrl) && (
+        <div className="px-4 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-white/60 dark:bg-stone-900/60 border border-stone-200/60 dark:border-stone-800 text-xs">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span className="font-bold text-stone-700 dark:text-stone-300">
+                {order.address ? `عنوان التوصيل: ${order.address}` : 'تم إرفاق الموقع الجغرافي بالـ GPS'}
+              </span>
+            </div>
+            {order.locationUrl && (
+              <a
+                href={order.locationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black border border-emerald-500/30 transition-all text-xs"
+              >
+                <span>Google Maps ↗</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Expanded Items */}
       <AnimatePresence>
@@ -255,9 +398,9 @@ export default function MyOrdersPage() {
     return () => clearInterval(interval);
   }, [user, fetchOrders]);
 
-  const pending = orders.filter((o) => o.status === 'PENDING');
+  const pendingOrPreparing = orders.filter((o) => o.status === 'PENDING' || o.status === 'PREPARING');
+  const outForDelivery = orders.filter((o) => o.status === 'OUT_FOR_DELIVERY');
   const delivered = orders.filter((o) => o.status === 'DELIVERED');
-  const cancelled = orders.filter((o) => o.status === 'CANCELLED');
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-8">
@@ -286,10 +429,14 @@ export default function MyOrdersPage() {
 
       {/* Orders summary banner */}
       {orders.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-3 text-center">
-            <div className="text-xl font-black text-amber-700 dark:text-amber-300">{pending.length}</div>
-            <div className="text-[11px] font-bold text-amber-800 dark:text-amber-400">قيد التحضير</div>
+            <div className="text-xl font-black text-amber-700 dark:text-amber-300">{pendingOrPreparing.length}</div>
+            <div className="text-[11px] font-bold text-amber-800 dark:text-amber-400">قيد التحضير والتجهيز</div>
+          </div>
+          <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/50 rounded-2xl p-3 text-center">
+            <div className="text-xl font-black text-purple-700 dark:text-purple-300">{outForDelivery.length}</div>
+            <div className="text-[11px] font-bold text-purple-800 dark:text-purple-400">في الطريق إليك 🛵</div>
           </div>
           <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-3 text-center">
             <div className="text-xl font-black text-emerald-700 dark:text-emerald-300">{delivered.length}</div>

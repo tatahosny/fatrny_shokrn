@@ -29,7 +29,13 @@ interface CartContextType {
   favorites: string[];
   toggleFavorite: (foodId: string) => void;
   isFavorite: (foodId: string) => boolean;
-  submitOrder: (notes?: string, guestName?: string, guestPhone?: string) => Promise<Order | null>;
+  submitOrder: (
+    notes?: string,
+    guestName?: string,
+    guestPhone?: string,
+    address?: string,
+    locationUrl?: string
+  ) => Promise<Order | null>;
   isSubmitting: boolean;
 }
 
@@ -225,7 +231,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const submitOrder = async (
     notes?: string,
     guestName?: string,
-    guestPhone?: string
+    guestPhone?: string,
+    address?: string,
+    locationUrl?: string
   ): Promise<Order | null> => {
     if (items.length === 0) {
       showToast('سلة المشتريات فارغة!', 'error');
@@ -244,6 +252,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           notes: i.notes || '',
         })),
         notes: notes || '',
+        address: address || '',
+        locationUrl: locationUrl || '',
         guestName,
         guestPhone,
         restaurantId: primaryRestId,

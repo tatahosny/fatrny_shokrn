@@ -1,6 +1,6 @@
 export type Role = 'USER' | 'ADMIN' | 'RESTAURANT' | 'CUSTOMER' | 'STUDENT';
 
-export type OrderStatus = 'PENDING' | 'DELIVERED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'PREPARING' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED';
 
 export type UserStatus = 'ACTIVE' | 'PENDING_VERIFICATION' | 'REJECTED';
 
@@ -26,6 +26,8 @@ export interface User {
   studentIdImage?: string;
   restaurantId?: string;
   restaurantName?: string;
+  address?: string;
+  locationUrl?: string;
   createdAt: string;
 }
 
@@ -84,6 +86,8 @@ export interface Order {
   restaurantName?: string;
   status: OrderStatus;
   notes?: string;
+  address?: string;
+  locationUrl?: string;
   createdAt: string;
   deliveredAt?: string | null;
   items: OrderItem[];

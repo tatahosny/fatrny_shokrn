@@ -37,29 +37,52 @@ export async function GET(req: NextRequest) {
     const status = (searchParams.get('status') as OrderStatus | 'ALL') || undefined;
     const search = searchParams.get('search') || undefined;
 
-    // جلب الطلبات الموجهة فقط لهذا المطعم
-    const orders = await db.getOrders({
-      restaurantId,
-      status,
-      search,
+    // جلب جميع الطلبات للمطعم لحساب الإحصائيات الكاملة
+    const allRestaurantOrders = await db.getOrders({ restaurantId });
+
+    // تصفية الطلبات المعروضة بحسب الحالة أو البحث إن وجد
+    const filteredOrders = allRestaurantOrders.filter((o) => {
+      if (status && status !== 'ALL' && o.status !== status) return false;
+      if (search && search.trim() !== '') {
+        const q = search.trim().toLowerCase();
+        return (
+          o.userName.toLowerCase().includes(q) ||
+          o.userPhone.includes(q) ||
+          String(o.orderNumber).includes(q) ||
+          (o.notes && o.notes.toLowerCase().includes(q)) ||
+          (o.address && o.address.toLowerCase().includes(q))
+        );
+      }
+      return true;
     });
 
     const restaurant = await db.getRestaurantById(restaurantId);
 
-    const pendingOrders = orders.filter((o) => o.status === 'PENDING');
-    const deliveredOrders = orders.filter((o) => o.status === 'DELIVERED');
-    const pendingItemsCount = pendingOrders.reduce(
+    const pendingOrders = allRestaurantOrders.filter((o) => o.status === 'PENDING');
+    const preparingOrders = allRestaurantOrders.filter((o) => o.status === 'PREPARING');
+    const outForDeliveryOrders = allRestaurantOrders.filter((o) => o.status === 'OUT_FOR_DELIVERY');
+    const deliveredOrders = allRestaurantOrders.filter((o) => o.status === 'DELIVERED');
+    const cancelledOrders = allRestaurantOrders.filter((o) => o.status === 'CANCELLED');
+
+    const totalRevenue = deliveredOrders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
+    const activeOrdersCount = pendingOrders.length + preparingOrders.length + outForDeliveryOrders.length;
+    const pendingItemsCount = [...pendingOrders, ...preparingOrders].reduce(
       (sum, o) => sum + (o.totalItemsCount || o.items.reduce((s, it) => s + it.quantity, 0)),
       0
     );
 
     return NextResponse.json({
-      orders,
+      orders: filteredOrders,
       restaurant,
       stats: {
-        totalOrders: orders.length,
+        totalOrders: allRestaurantOrders.length,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        activeOrdersCount,
         pendingOrders: pendingOrders.length,
+        preparingOrders: preparingOrders.length,
+        outForDeliveryOrders: outForDeliveryOrders.length,
         deliveredOrders: deliveredOrders.length,
+        cancelledOrders: cancelledOrders.length,
         pendingItemsCount,
       },
     });

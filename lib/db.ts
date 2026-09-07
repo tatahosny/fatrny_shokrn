@@ -46,7 +46,7 @@ export const db = {
   async getUsers(): Promise<User[]> {
     const res = await pool.query(`
       SELECT u.id, u.name, u.phone, u.role, u.restaurant_id as "restaurantId", r.name as "restaurantName",
-             u.status, u.student_id_image as "studentIdImage", u.created_at
+             u.status, u.student_id_image as "studentIdImage", u.address, u.location_url as "locationUrl", u.created_at
       FROM users u
       LEFT JOIN restaurants r ON u.restaurant_id = r.id
       ORDER BY u.created_at DESC
@@ -61,6 +61,8 @@ export const db = {
       studentIdImage: row.studentIdImage || undefined,
       restaurantId: row.restaurantId || undefined,
       restaurantName: row.restaurantName || undefined,
+      address: row.address || undefined,
+      locationUrl: row.locationUrl || undefined,
       createdAt: toIso(row.created_at),
     }));
   },
@@ -68,7 +70,7 @@ export const db = {
   async getUserById(id: string): Promise<User | null> {
     const res = await pool.query(
       `SELECT u.id, u.name, u.phone, u.password_hash as "passwordHash", u.role, u.restaurant_id as "restaurantId", r.name as "restaurantName",
-              u.status, u.student_id_image as "studentIdImage", u.created_at
+              u.status, u.student_id_image as "studentIdImage", u.address, u.location_url as "locationUrl", u.created_at
        FROM users u
        LEFT JOIN restaurants r ON u.restaurant_id = r.id
        WHERE u.id = $1`,
@@ -87,6 +89,8 @@ export const db = {
       studentIdImage: row.studentIdImage || undefined,
       restaurantId: row.restaurantId || undefined,
       restaurantName: row.restaurantName || undefined,
+      address: row.address || undefined,
+      locationUrl: row.locationUrl || undefined,
       createdAt: toIso(row.created_at),
     };
   },
@@ -95,7 +99,7 @@ export const db = {
     const cleanPhone = phone.trim();
     const res = await pool.query(
       `SELECT u.id, u.name, u.phone, u.password_hash as "passwordHash", u.role, u.restaurant_id as "restaurantId", r.name as "restaurantName",
-              u.status, u.student_id_image as "studentIdImage", u.created_at
+              u.status, u.student_id_image as "studentIdImage", u.address, u.location_url as "locationUrl", u.created_at
        FROM users u
        LEFT JOIN restaurants r ON u.restaurant_id = r.id
        WHERE TRIM(u.phone) = $1`,
@@ -114,6 +118,8 @@ export const db = {
       studentIdImage: row.studentIdImage || undefined,
       restaurantId: row.restaurantId || undefined,
       restaurantName: row.restaurantName || undefined,
+      address: row.address || undefined,
+      locationUrl: row.locationUrl || undefined,
       createdAt: toIso(row.created_at),
     };
   },
@@ -715,6 +721,8 @@ export const db = {
         o.restaurant_name as "restaurantName",
         o.status,
         o.notes,
+        o.address,
+        o.location_url as "locationUrl",
         o.total_amount::float as "totalAmount",
         o.discount_amount::float as "discountAmount",
         o.created_at as "createdAt",
@@ -759,6 +767,8 @@ export const db = {
         restaurantName: row.restaurantName || undefined,
         status: row.status as OrderStatus,
         notes: row.notes || '',
+        address: row.address || '',
+        locationUrl: row.locationUrl || '',
         totalAmount: row.totalAmount !== null ? Number(row.totalAmount) : undefined,
         discountAmount: row.discountAmount !== null ? Number(row.discountAmount) : 0,
         createdAt: toIso(row.createdAt),
@@ -782,6 +792,8 @@ export const db = {
         o.restaurant_name as "restaurantName",
         o.status,
         o.notes,
+        o.address,
+        o.location_url as "locationUrl",
         o.total_amount::float as "totalAmount",
         o.discount_amount::float as "discountAmount",
         o.created_at as "createdAt",
@@ -826,6 +838,8 @@ export const db = {
       restaurantName: row.restaurantName || undefined,
       status: row.status as OrderStatus,
       notes: row.notes || '',
+      address: row.address || '',
+      locationUrl: row.locationUrl || '',
       totalAmount: row.totalAmount !== null ? Number(row.totalAmount) : undefined,
       discountAmount: row.discountAmount !== null ? Number(row.discountAmount) : 0,
       createdAt: toIso(row.createdAt),
@@ -842,6 +856,8 @@ export const db = {
     restaurantId?: string;
     restaurantName?: string;
     notes?: string;
+    address?: string;
+    locationUrl?: string;
     items: { foodItemId: string; quantity: number; notes?: string }[];
   }): Promise<Order> {
     if (!params.items || params.items.length === 0) {
@@ -993,11 +1009,14 @@ export const db = {
         throw new Error('لم يتم العثور على وجبات صالحة في السلة');
       }
 
+      const orderAddress = params.address?.trim() || '';
+      const orderLocationUrl = params.locationUrl?.trim() || '';
+
       // 1. إنشاء الطلب أولاً في جدول orders (الأب) حتى يتوفر orderId للمفتاح الخارجي
       await client.query(
-        `INSERT INTO orders (id, order_number, user_id, user_name, user_phone, restaurant_id, restaurant_name, status, notes, total_amount, discount_amount, user_role, created_at, delivered_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING', $8, $9, $10, $11, $12, NULL)`,
-        [orderId, orderNumber, params.userId, params.userName, params.userPhone, restaurantId || null, restaurantName || null, finalOrderNotes, totalAmount, totalDiscount, userRole, createdAt]
+        `INSERT INTO orders (id, order_number, user_id, user_name, user_phone, restaurant_id, restaurant_name, status, notes, address, location_url, total_amount, discount_amount, user_role, created_at, delivered_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING', $8, $9, $10, $11, $12, $13, $14, NULL)`,
+        [orderId, orderNumber, params.userId, params.userName, params.userPhone, restaurantId || null, restaurantName || null, finalOrderNotes, orderAddress, orderLocationUrl, totalAmount, totalDiscount, userRole, createdAt]
       );
 
       // 2. إدراج عناصر الطلب في جدول order_items (الابن) بعد إتمام وجود الطلب في جدول orders
@@ -1033,7 +1052,7 @@ export const db = {
           params.userId,
           params.userName,
           `طلب إفطار جديد #${orderNumber} من ${params.userName}${restaurantName ? ` لمطعم ${restaurantName}` : ''}${totalDiscount > 0 ? ` (خصم طلاب ${discountPercent}%)` : ''}`,
-          JSON.stringify({ itemsCount: totalItemsCount, orderNumber, restaurantId, restaurantName, totalAmount, totalDiscount }),
+          JSON.stringify({ itemsCount: totalItemsCount, orderNumber, restaurantId, restaurantName, totalAmount, totalDiscount, address: orderAddress, locationUrl: orderLocationUrl }),
           createdAt,
         ]
       );
@@ -1051,6 +1070,8 @@ export const db = {
         restaurantName: restaurantName || undefined,
         status: 'PENDING',
         notes: finalOrderNotes,
+        address: orderAddress,
+        locationUrl: orderLocationUrl,
         totalAmount,
         discountAmount: totalDiscount,
         createdAt,
@@ -1090,6 +1111,10 @@ export const db = {
     const statusArabic =
       status === 'DELIVERED'
         ? 'تم التسليم بنجاح'
+        : status === 'PREPARING'
+        ? 'قيد التجهيز والتحضير بالمطعم'
+        : status === 'OUT_FOR_DELIVERY'
+        ? 'الطلب في الطريق مع المندوب'
         : status === 'CANCELLED'
         ? 'تم الإلغاء'
         : 'قيد الانتظار';

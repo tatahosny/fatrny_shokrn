@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Order, Restaurant, FoodItem, Category, StudentDiscount } from '@/lib/types';
+import { Order, Restaurant, FoodItem, Category, StudentDiscount, OrderStatus } from '@/lib/types';
 import {
   Store,
   ClipboardList,
@@ -30,14 +30,22 @@ import {
   StickyNote,
   LogOut,
   ExternalLink,
+  MapPin,
+  DollarSign,
+  TrendingUp,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 interface Stats {
   totalOrders: number;
+  totalRevenue: number;
+  activeOrdersCount: number;
   pendingOrders: number;
+  preparingOrders: number;
+  outForDeliveryOrders: number;
   deliveredOrders: number;
+  cancelledOrders: number;
   pendingItemsCount: number;
 }
 
@@ -53,7 +61,7 @@ export default function RestaurantDashboard() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'DELIVERED' | 'CANCELLED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | OrderStatus>('ALL');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -180,7 +188,7 @@ export default function RestaurantDashboard() {
     return () => clearInterval(interval);
   }, [fetchOrders, isRestaurant, isAdmin, activeTab]);
 
-  const updateOrderStatus = async (orderId: string, newStatus: 'DELIVERED' | 'PENDING' | 'CANCELLED') => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingId(orderId);
     try {
       const res = await fetch(`/api/restaurant/orders/${orderId}/status`, {
@@ -194,7 +202,12 @@ export default function RestaurantDashboard() {
         );
         fetchOrders();
         showNotification('تم تحديث حالة الطلب بنجاح');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showNotification(errData.error || 'فشل تحديث حالة الطلب', 'error');
       }
+    } catch {
+      showNotification('حدث خطأ في الاتصال بالخادم', 'error');
     } finally {
       setUpdatingId(null);
     }
@@ -343,8 +356,13 @@ export default function RestaurantDashboard() {
     }
   };
 
-  const statusConfig = {
-    PENDING: { label: 'قيد التحضير', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
+  const statusConfig: Record<
+    OrderStatus,
+    { label: string; color: string; icon: React.ComponentType<{ className?: string }> }
+  > = {
+    PENDING: { label: 'قيد الانتظار', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', icon: Clock },
+    PREPARING: { label: 'قيد التجهيز', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', icon: UtensilsCrossed },
+    OUT_FOR_DELIVERY: { label: 'في الطريق', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300', icon: Package },
     DELIVERED: { label: 'تم التسليم', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', icon: CheckCircle2 },
     CANCELLED: { label: 'ملغي', color: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300', icon: XCircle },
   };
@@ -497,64 +515,100 @@ export default function RestaurantDashboard() {
         )}
 
         {/* ============================================================= */}
-        {/* TAB 1: ORDERS                                                 */}
+        {/* TAB 1: ORDERS DASHBOARD                                       */}
         {/* ============================================================= */}
         {activeTab === 'orders' && (
           <div className="space-y-6">
             {/* Quick Stats Grid */}
             {stats && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm">
-                  <div className="flex items-center justify-between text-stone-500 mb-2">
-                    <span className="text-xs font-bold">إجمالي الطلبات</span>
-                    <ClipboardList className="w-4 h-4" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {/* Revenue Card */}
+                <div className="bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-4 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-emerald-400 mb-1">
+                    <span className="text-xs font-black">إجمالي الأرباح</span>
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
                   </div>
-                  <div className="text-2xl font-black text-stone-900 dark:text-white">{stats.totalOrders}</div>
+                  <div className="text-2xl font-black text-emerald-400">
+                    {(stats.totalRevenue || 0).toLocaleString('ar-EG')} <span className="text-xs font-bold text-emerald-300">ج.م</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-500/80 font-bold mt-1">الطلبات المسلمة</span>
                 </div>
 
-                <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-4 border border-amber-200 dark:border-amber-800/50">
-                  <div className="flex items-center justify-between text-amber-700 dark:text-amber-400 mb-2">
-                    <span className="text-xs font-bold">قيد التحضير</span>
+                {/* Total Orders */}
+                <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-stone-500 mb-1">
+                    <span className="text-xs font-bold">إجمالي الطلبات</span>
+                    <ClipboardList className="w-4 h-4 text-orange-400" />
+                  </div>
+                  <div className="text-2xl font-black text-stone-900 dark:text-white">{stats.totalOrders}</div>
+                  <span className="text-[10px] text-stone-400 font-bold mt-1">جميع الحالات</span>
+                </div>
+
+                {/* Pending Orders */}
+                <div className="bg-amber-50 dark:bg-amber-950/30 rounded-2xl p-4 border border-amber-200 dark:border-amber-800/50 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-amber-700 dark:text-amber-400 mb-1">
+                    <span className="text-xs font-bold">قيد الانتظار</span>
                     <Clock className="w-4 h-4" />
                   </div>
                   <div className="text-2xl font-black text-amber-700 dark:text-amber-300">{stats.pendingOrders}</div>
+                  <span className="text-[10px] text-amber-600/80 font-bold mt-1">بانتظار التجهيز</span>
                 </div>
 
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800/50">
-                  <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 mb-2">
+                {/* Preparing Orders */}
+                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-2xl p-4 border border-blue-200 dark:border-blue-800/50 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-blue-700 dark:text-blue-400 mb-1">
+                    <span className="text-xs font-bold">قيد التجهيز</span>
+                    <UtensilsCrossed className="w-4 h-4" />
+                  </div>
+                  <div className="text-2xl font-black text-blue-700 dark:text-blue-300">{stats.preparingOrders || 0}</div>
+                  <span className="text-[10px] text-blue-600/80 font-bold mt-1">بالمطبخ الآن</span>
+                </div>
+
+                {/* Out for delivery Orders */}
+                <div className="bg-purple-50 dark:bg-purple-950/30 rounded-2xl p-4 border border-purple-200 dark:border-purple-800/50 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-purple-700 dark:text-purple-400 mb-1">
+                    <span className="text-xs font-bold">في الطريق</span>
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div className="text-2xl font-black text-purple-700 dark:text-purple-300">{stats.outForDeliveryOrders || 0}</div>
+                  <span className="text-[10px] text-purple-600/80 font-bold mt-1">مع المندوب</span>
+                </div>
+
+                {/* Delivered Orders */}
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200 dark:border-emerald-800/50 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-400 mb-1">
                     <span className="text-xs font-bold">تم التسليم</span>
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <div className="text-2xl font-black text-emerald-700 dark:text-emerald-300">{stats.deliveredOrders}</div>
-                </div>
-
-                <div className="bg-purple-50 dark:bg-purple-950/30 rounded-2xl p-4 border border-purple-200 dark:border-purple-800/50">
-                  <div className="flex items-center justify-between text-purple-700 dark:text-purple-400 mb-2">
-                    <span className="text-xs font-bold">وجبات مطلوبة الآن</span>
-                    <Package className="w-4 h-4" />
-                  </div>
-                  <div className="text-2xl font-black text-purple-700 dark:text-purple-300">{stats.pendingItemsCount}</div>
+                  <span className="text-[10px] text-emerald-600/80 font-bold mt-1">تم بنجاح</span>
                 </div>
               </div>
             )}
 
             {/* Filter Bar */}
-            <div className="flex items-center justify-between gap-3 bg-white dark:bg-stone-900 p-3 rounded-2xl border border-stone-200 dark:border-stone-800">
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-                {(['ALL', 'PENDING', 'DELIVERED', 'CANCELLED'] as const).map((filter) => (
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-stone-900 p-3 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                {(
+                  [
+                    { key: 'ALL', label: 'الكل' },
+                    { key: 'PENDING', label: 'قيد الانتظار' },
+                    { key: 'PREPARING', label: 'قيد التجهيز 🍳' },
+                    { key: 'OUT_FOR_DELIVERY', label: 'في الطريق 🛵' },
+                    { key: 'DELIVERED', label: 'تم التسليم ✅' },
+                    { key: 'CANCELLED', label: 'ملغي ❌' },
+                  ] as const
+                ).map((filter) => (
                   <button
-                    key={filter}
-                    onClick={() => setStatusFilter(filter)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
-                      statusFilter === filter
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200'
+                    key={filter.key}
+                    onClick={() => setStatusFilter(filter.key as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap ${
+                      statusFilter === filter.key
+                        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
                     }`}
                   >
-                    {filter === 'ALL' && 'الكل'}
-                    {filter === 'PENDING' && 'قيد التحضير'}
-                    {filter === 'DELIVERED' && 'تم التسليم'}
-                    {filter === 'CANCELLED' && 'ملغي'}
+                    {filter.label}
                   </button>
                 ))}
               </div>
@@ -568,7 +622,7 @@ export default function RestaurantDashboard() {
               </button>
             </div>
 
-            {/* Orders List */}
+            {/* Orders Table */}
             {orders.length === 0 ? (
               <div className="text-center py-16 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800">
                 <ClipboardList className="w-12 h-12 text-stone-300 dark:text-stone-700 mx-auto mb-3" />
@@ -576,135 +630,335 @@ export default function RestaurantDashboard() {
                 <p className="text-xs text-stone-400 mt-1">الطلبات الجديدة الموجهة لمطعمك ستظهر هنا فور إرسالها من العملاء</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {orders.map((order) => {
-                  const isExpanded = expandedOrder === order.id;
-                  const config = statusConfig[order.status] || statusConfig.PENDING;
-                  const StatusIcon = config.icon;
+              <div className="overflow-x-auto rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm">
+                <table className="w-full text-right border-collapse">
+                  <thead>
+                    <tr className="border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/60 text-stone-500 dark:text-stone-400 text-xs font-black">
+                      <th className="py-3 px-4"># الطلب والوقت</th>
+                      <th className="py-3 px-4">العميل والهاتف</th>
+                      <th className="py-3 px-4">العنوان وموقع الخريطة</th>
+                      <th className="py-3 px-4">تفاصيل الوجبات والملاحظات</th>
+                      <th className="py-3 px-4">المبلغ</th>
+                      <th className="py-3 px-4">الحالة</th>
+                      <th className="py-3 px-4 text-center">مراحل الطلب والإجراءات</th>
+                      <th className="py-3 px-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 dark:divide-stone-800/60 text-xs">
+                    {orders.map((order) => {
+                      const isExpanded = expandedOrder === order.id;
+                      const config = statusConfig[order.status] || statusConfig.PENDING;
+                      const StatusIcon = config.icon;
 
-                  return (
-                    <div
-                      key={order.id}
-                      className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden"
-                    >
-                      <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-black flex items-center justify-center text-sm">
-                            #{order.orderNumber}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-sm">{order.userName}</span>
-                              {order.userRole === 'STUDENT' && (
-                                <span className="text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-                                  طالب 🎓
+                      return (
+                        <React.Fragment key={order.id}>
+                          <tr className={`hover:bg-stone-50/70 dark:hover:bg-stone-800/40 transition-colors ${
+                            isExpanded ? 'bg-orange-50/30 dark:bg-orange-950/10' : ''
+                          }`}>
+                            {/* Order Number & Time */}
+                            <td className="py-3.5 px-4 font-extrabold whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                <span className="text-orange-600 dark:text-orange-400 font-black text-sm bg-orange-100 dark:bg-orange-950/60 px-2 py-1 rounded-lg">
+                                  #{order.orderNumber}
                                 </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 text-xs text-stone-400 mt-0.5">
-                              <span className="flex items-center gap-1">
-                                <Phone className="w-3 h-3" />
-                                <a href={`tel:${order.userPhone}`} dir="ltr" className="hover:text-orange-500">
-                                  {order.userPhone}
-                                </a>
-                              </span>
-                              <span>•</span>
-                              <span>{new Date(order.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3 self-end sm:self-center">
-                          {order.totalAmount !== undefined && (
-                            <div className="text-right">
-                              <span className="text-[10px] text-stone-400 block font-bold">الإجمالي</span>
-                              <span className="font-black text-sm text-stone-900 dark:text-white">
-                                {order.totalAmount} ج.م
-                              </span>
-                            </div>
-                          )}
-
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black ${config.color}`}>
-                            <StatusIcon className="w-3.5 h-3.5" />
-                            <span>{config.label}</span>
-                          </span>
-
-                          <button
-                            onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                            className="p-1.5 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-400 hover:text-stone-600"
-                          >
-                            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Expanded Order Items */}
-                      {isExpanded && (
-                        <div className="border-t border-stone-100 dark:border-stone-800 p-4 bg-stone-50/50 dark:bg-stone-800/30 space-y-3">
-                          <div className="space-y-2">
-                            {order.items.map((it) => (
-                              <div key={it.id} className="flex items-center justify-between text-xs py-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-black text-orange-600">{it.quantity}×</span>
-                                  <span className="font-bold text-stone-800 dark:text-stone-200">{it.foodName}</span>
-                                  {it.notes && (
-                                    <span className="text-[11px] text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md font-bold">
-                                      {it.notes}
-                                    </span>
-                                  )}
+                                <div>
+                                  <span className="block text-[11px] text-stone-400">
+                                    {new Date(order.createdAt).toLocaleTimeString('ar-EG', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </span>
+                                  <span className="block text-[10px] text-stone-500">
+                                    {new Date(order.createdAt).toLocaleDateString('ar-EG')}
+                                  </span>
                                 </div>
-                                <span className="font-bold text-stone-600 dark:text-stone-400">
-                                  {it.price ? `${it.price * it.quantity} ج.م` : ''}
-                                </span>
                               </div>
-                            ))}
-                          </div>
+                            </td>
 
-                          {order.notes && (
-                            <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300">
-                              <StickyNote className="w-4 h-4 shrink-0 mt-0.5" />
-                              <span>{order.notes}</span>
-                            </div>
-                          )}
-
-                          {/* Action Buttons */}
-                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200/60 dark:border-stone-700/60">
-                            {order.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
-                                  disabled={updatingId === order.id}
-                                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
-                                >
-                                  <CheckCircle2 className="w-4 h-4" />
-                                  <span>تم التسليم</span>
-                                </button>
-                                <button
-                                  onClick={() => updateOrderStatus(order.id, 'CANCELLED')}
-                                  disabled={updatingId === order.id}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                  <span>إلغاء الطلب</span>
-                                </button>
-                              </>
-                            )}
-
-                            {order.status === 'DELIVERED' && (
-                              <button
-                                onClick={() => updateOrderStatus(order.id, 'PENDING')}
-                                disabled={updatingId === order.id}
-                                className="text-xs text-stone-500 hover:text-stone-700 underline"
+                            {/* Customer Info */}
+                            <td className="py-3.5 px-4">
+                              <div className="font-extrabold text-stone-900 dark:text-white flex items-center gap-1.5">
+                                <span>{order.userName}</span>
+                                {order.userRole === 'STUDENT' && (
+                                  <span className="text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 px-1.5 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
+                                    طالب 🎓
+                                  </span>
+                                )}
+                              </div>
+                              <a
+                                href={`tel:${order.userPhone}`}
+                                dir="ltr"
+                                className="text-[11px] text-stone-400 hover:text-orange-500 flex items-center gap-1 mt-0.5 w-fit"
                               >
-                                إعادة كقيد التحضير
+                                <Phone className="w-3 h-3 text-stone-500" />
+                                {order.userPhone}
+                              </a>
+                            </td>
+
+                            {/* Address & Google Maps */}
+                            <td className="py-3.5 px-4 max-w-[200px]">
+                              {order.address && (
+                                <p className="text-[11px] text-stone-700 dark:text-stone-300 truncate font-bold" title={order.address}>
+                                  {order.address}
+                                </p>
+                              )}
+                              {order.locationUrl ? (
+                                <a
+                                  href={order.locationUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 mt-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-black border border-emerald-500/30 transition-colors"
+                                  title="فتح العنوان على Google Maps"
+                                >
+                                  <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                  <span>Google Maps ↗</span>
+                                </a>
+                              ) : (
+                                !order.address && (
+                                  <span className="text-[11px] text-stone-400 italic">استلام من المطعم</span>
+                                )
+                              )}
+                            </td>
+
+                            {/* Items & Notes Summary */}
+                            <td className="py-3.5 px-4 max-w-[240px]">
+                              <div className="space-y-1">
+                                {order.items.slice(0, 2).map((item) => (
+                                  <div key={item.id} className="flex items-center gap-1.5 text-[11px]">
+                                    <span className="font-black text-orange-600">{item.quantity}×</span>
+                                    <span className="font-bold text-stone-800 dark:text-stone-200 truncate">{item.foodName}</span>
+                                    {item.notes && (
+                                      <span className="text-[10px] text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-1 py-0.5 rounded font-bold truncate max-w-[90px]" title={item.notes}>
+                                        {item.notes}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                                {order.items.length > 2 && (
+                                  <span className="text-[10px] text-stone-400 font-bold block">
+                                    +{order.items.length - 2} أصناف أخرى...
+                                  </span>
+                                )}
+                                {order.notes && (
+                                  <div className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 truncate" title={order.notes}>
+                                    ملاحظة: {order.notes}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Total Amount */}
+                            <td className="py-3.5 px-4 font-black whitespace-nowrap text-stone-900 dark:text-white">
+                              {order.totalAmount !== undefined ? `${order.totalAmount} ج.م` : '—'}
+                            </td>
+
+                            {/* Status Badge */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black ${config.color}`}>
+                                <StatusIcon className="w-3.5 h-3.5" />
+                                <span>{config.label}</span>
+                              </span>
+                            </td>
+
+                            {/* Stage Action Buttons */}
+                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                              <div className="flex items-center justify-center gap-1.5">
+                                {order.status === 'PENDING' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'PREPARING')}
+                                      disabled={updatingId === order.id}
+                                      className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                      title="نقل الطلب لمرحلة التجهيز بالمطبخ"
+                                    >
+                                      <UtensilsCrossed className="w-3 h-3" />
+                                      <span>تم التجهيز 🍳</span>
+                                    </button>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'CANCELLED')}
+                                      disabled={updatingId === order.id}
+                                      className="px-2 py-1.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs font-bold transition-colors"
+                                      title="إلغاء الطلب"
+                                    >
+                                      إلغاء ❌
+                                    </button>
+                                  </>
+                                )}
+
+                                {order.status === 'PREPARING' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'OUT_FOR_DELIVERY')}
+                                      disabled={updatingId === order.id}
+                                      className="px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                      title="الطلب جاهز وفي الطريق للعميل"
+                                    >
+                                      <Package className="w-3 h-3" />
+                                      <span>في الطريق 🛵</span>
+                                    </button>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
+                                      disabled={updatingId === order.id}
+                                      className="px-2 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors shadow-sm"
+                                      title="تسليم فوري"
+                                    >
+                                      تسليم ✅
+                                    </button>
+                                  </>
+                                )}
+
+                                {order.status === 'OUT_FOR_DELIVERY' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'DELIVERED')}
+                                      disabled={updatingId === order.id}
+                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors flex items-center gap-1 shadow-sm"
+                                      title="تأكيد تسليم الطلب للعميل بنجاح"
+                                    >
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                      <span>تم التوصيل ✅</span>
+                                    </button>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'PREPARING')}
+                                      disabled={updatingId === order.id}
+                                      className="text-[10px] text-stone-400 hover:underline px-1"
+                                      title="إعادة للمطبخ"
+                                    >
+                                      ↩ بالمطبخ
+                                    </button>
+                                  </>
+                                )}
+
+                                {order.status === 'DELIVERED' && (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-emerald-500 font-bold text-xs flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                      <span>مكتمل</span>
+                                    </span>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'OUT_FOR_DELIVERY')}
+                                      disabled={updatingId === order.id}
+                                      className="text-[10px] text-stone-400 hover:underline px-1"
+                                    >
+                                      تعديل
+                                    </button>
+                                  </div>
+                                )}
+
+                                {order.status === 'CANCELLED' && (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-red-400 font-bold text-xs flex items-center gap-1">
+                                      <XCircle className="w-3.5 h-3.5" />
+                                      <span>ملغي</span>
+                                    </span>
+                                    <button
+                                      onClick={() => updateOrderStatus(order.id, 'PENDING')}
+                                      disabled={updatingId === order.id}
+                                      className="text-[10px] text-stone-400 hover:underline px-1"
+                                    >
+                                      استعادة
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Expand Row Toggle */}
+                            <td className="py-3.5 px-2 text-center">
+                              <button
+                                onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                                className="p-1 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-400"
+                                title="عرض كل التفاصيل"
+                              >
+                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                               </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                            </td>
+                          </tr>
+
+                          {/* Expanded Full Details Row */}
+                          {isExpanded && (
+                            <tr className="bg-stone-50/90 dark:bg-stone-800/60 border-b border-stone-200 dark:border-stone-700">
+                              <td colSpan={8} className="p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {/* Meals Breakdown */}
+                                  <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-stone-200 dark:border-stone-800 space-y-2">
+                                    <h4 className="text-xs font-black text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                                      <UtensilsCrossed className="w-3.5 h-3.5 text-orange-500" />
+                                      <span>قائمة الوجبات المطلوبة بالتفصيل ({order.items.length}):</span>
+                                    </h4>
+                                    <div className="space-y-1.5 divide-y divide-stone-100 dark:divide-stone-800">
+                                      {order.items.map((it) => (
+                                        <div key={it.id} className="pt-1.5 flex items-center justify-between text-xs">
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-black text-orange-600">{it.quantity}×</span>
+                                            <span className="font-bold text-stone-900 dark:text-white">{it.foodName}</span>
+                                            {it.notes && (
+                                              <span className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-md font-bold">
+                                                ملاحظة: {it.notes}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <span className="font-black text-stone-600 dark:text-stone-400">
+                                            {it.price ? `${it.price * it.quantity} ج.م` : ''}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    {order.notes && (
+                                      <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-1.5 mt-2">
+                                        <StickyNote className="w-4 h-4 shrink-0 mt-0.5" />
+                                        <span><strong>ملاحظات العميل للتوصيل:</strong> {order.notes}</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Delivery & Contact Details */}
+                                  <div className="bg-white dark:bg-stone-900 rounded-2xl p-4 border border-stone-200 dark:border-stone-800 space-y-3">
+                                    <h4 className="text-xs font-black text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                                      <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                                      <span>بيانات التوصيل والموقع الجغرافي:</span>
+                                    </h4>
+                                    <div className="text-xs space-y-2">
+                                      <div>
+                                        <span className="text-stone-400 font-bold block text-[11px]">اسم العميل:</span>
+                                        <span className="font-black text-stone-900 dark:text-white">{order.userName}</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-stone-400 font-bold block text-[11px]">رقم الهاتف:</span>
+                                        <a href={`tel:${order.userPhone}`} dir="ltr" className="font-black text-orange-500 hover:underline">
+                                          {order.userPhone}
+                                        </a>
+                                      </div>
+                                      <div>
+                                        <span className="text-stone-400 font-bold block text-[11px]">العنوان المكتوب:</span>
+                                        <span className="font-bold text-stone-800 dark:text-stone-200">
+                                          {order.address || 'لم يتم إدخال عنوان نصي'}
+                                        </span>
+                                      </div>
+                                      {order.locationUrl && (
+                                        <div className="pt-2">
+                                          <a
+                                            href={order.locationUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition-all"
+                                          >
+                                            <MapPin className="w-4 h-4" />
+                                            <span>فتح اللوكيشن على Google Maps وتتبع العنوان ↗</span>
+                                          </a>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

@@ -371,7 +371,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Users List / Table */}
+      {/* Users Data Table */}
       {loading ? (
         <div className="text-center py-20 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800">
           <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-3" />
@@ -383,65 +383,128 @@ export default function AdminUsersPage() {
           <h3 className="font-bold text-stone-700 dark:text-stone-300">لا يوجد حسابات مطابقة</h3>
         </div>
       ) : (
-        <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm divide-y divide-stone-100 dark:divide-stone-800">
-          {filtered.map((u) => (
-            <div
-              key={u.id}
-              className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50/70 dark:hover:bg-stone-800/40 transition-colors"
-            >
-              <div className="flex items-start sm:items-center gap-3.5">
-                <div
-                  className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md ${
-                    u.role === 'RESTAURANT'
-                      ? 'bg-gradient-to-tr from-orange-500 to-amber-500 shadow-orange-500/20'
-                      : u.role === 'ADMIN'
-                      ? 'bg-gradient-to-tr from-amber-500 to-yellow-500 shadow-amber-500/20'
-                      : u.role === 'STUDENT'
-                      ? 'bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-indigo-500/20'
-                      : 'bg-gradient-to-tr from-stone-600 to-stone-700'
-                  }`}
-                >
-                  {u.name.charAt(0)}
-                </div>
+        <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="border-b border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-800/60 text-stone-500 text-[11px] font-black uppercase tracking-wider">
+                  <th className="py-3.5 px-4">#</th>
+                  <th className="py-3.5 px-4">المستخدم</th>
+                  <th className="py-3.5 px-4">رقم الهاتف</th>
+                  <th className="py-3.5 px-4">نوع الحساب والصلاحية</th>
+                  <th className="py-3.5 px-4">المطعم التابع له</th>
+                  <th className="py-3.5 px-4 text-center">إحصائية الطلبات</th>
+                  <th className="py-3.5 px-4 text-center">تاريخ الانضمام</th>
+                  <th className="py-3.5 px-4 text-center">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100 dark:divide-stone-800 text-xs">
+                {filtered.map((u, idx) => (
+                  <tr
+                    key={u.id}
+                    className="hover:bg-orange-50/30 dark:hover:bg-stone-800/40 transition-colors"
+                  >
+                    <td className="py-3.5 px-4 font-bold text-stone-400">
+                      {idx + 1}
+                    </td>
 
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-black text-sm sm:text-base text-stone-900 dark:text-white">
-                      {u.name}
-                    </span>
-                    {roleBadge(u.role, u.restaurantName)}
-                  </div>
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-xs shrink-0 shadow-xs ${
+                            u.role === 'RESTAURANT'
+                              ? 'bg-gradient-to-tr from-orange-500 to-amber-500'
+                              : u.role === 'ADMIN'
+                              ? 'bg-gradient-to-tr from-amber-500 to-yellow-500'
+                              : u.role === 'STUDENT'
+                              ? 'bg-gradient-to-tr from-indigo-500 to-purple-500'
+                              : 'bg-stone-600'
+                          }`}
+                        >
+                          {u.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-stone-900 dark:text-white text-xs sm:text-sm">
+                            {u.name}
+                          </div>
+                          <div className="text-[10px] text-stone-400">
+                            ID: {u.id.substring(0, 16)}...
+                          </div>
+                        </div>
+                      </div>
+                    </td>
 
-                  <div className="flex items-center gap-3 text-xs text-stone-500">
-                    <span className="flex items-center gap-1 font-semibold" dir="ltr">
-                      <Phone className="w-3.5 h-3.5 text-stone-400" />
-                      {u.phone}
-                    </span>
-                    <span>•</span>
-                    <span>{u.totalOrders} طلب منفذ</span>
-                  </div>
-                </div>
-              </div>
+                    <td className="py-3.5 px-4 font-mono font-semibold" dir="ltr">
+                      <a
+                        href={`tel:${u.phone}`}
+                        className="inline-flex items-center gap-1.5 text-stone-700 dark:text-stone-300 hover:text-orange-600 transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-stone-400" />
+                        <span>{u.phone}</span>
+                      </a>
+                    </td>
 
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <button
-                  onClick={() => openEdit(u)}
-                  className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-950/30 transition-colors"
-                  title="تعديل بيانات الحساب"
-                >
-                  <Edit3 className="w-4 h-4" />
-                </button>
+                    <td className="py-3.5 px-4">
+                      {roleBadge(u.role, u.restaurantName)}
+                    </td>
 
-                <button
-                  onClick={() => setConfirmDelete(u)}
-                  className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 transition-colors"
-                  title="حذف الحساب"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+                    <td className="py-3.5 px-4 font-medium text-stone-600 dark:text-stone-300">
+                      {u.restaurantName ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-orange-600 dark:text-orange-400">
+                          <Store className="w-3.5 h-3.5" />
+                          <span>{u.restaurantName}</span>
+                        </span>
+                      ) : (
+                        <span className="text-stone-400 text-[11px]">—</span>
+                      )}
+                    </td>
+
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-bold text-[11px]">
+                        <span>{u.totalOrders} إجمالي</span>
+                        <span className="text-stone-300">|</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">{u.delivered} منجز</span>
+                        {u.pending > 0 && (
+                          <>
+                            <span className="text-stone-300">|</span>
+                            <span className="text-amber-600 dark:text-amber-400 font-black animate-pulse">{u.pending} جاري</span>
+                          </>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="py-3.5 px-4 text-center text-[11px] text-stone-500 whitespace-nowrap">
+                      {new Date(u.createdAt).toLocaleDateString('ar-EG', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </td>
+
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => openEdit(u)}
+                          className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-950/30 transition-colors"
+                          title="تعديل بيانات الحساب"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={() => setConfirmDelete(u)}
+                          className="p-1.5 rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 transition-colors"
+                          title="حذف الحساب"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
